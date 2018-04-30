@@ -20,9 +20,9 @@ class TextBox_Window(object):
 		self.widget = QtGui.QWidget()
 
 		#Set fixed size for now, until we can set resizable QTextEdit
-		self.WIDTH = 900
-		self.HEIGHT = 715
-		self.widget.setFixedSize(self.WIDTH, self.HEIGHT)
+		self.WIDTH = 800
+		self.HEIGHT = 700
+		self.widget.setMinimumSize(self.WIDTH, self.HEIGHT)
 		self.widget.setAutoFillBackground(True)
 		MainWindow.setCentralWidget(self.widget)
 		MainWindow.setWindowTitle("TypeWritr v. 0.0.1")
@@ -37,7 +37,7 @@ class TextBox_Window(object):
 		
 		#Bottom command label, for use in seeing what the editor is doing
 		self.bottom_label = QtGui.QLabel("", self)
-		self.bottom_label.setGeometry(QtCore.QRect(0, self.HEIGHT-15, 900, 15))
+		self.bottom_label.setFixedHeight(15)
 		self.bottom_label.setFont(self.font)
 		self.bottom_label.setStyleSheet("""
 							.QLabel {
@@ -46,11 +46,20 @@ class TextBox_Window(object):
 							}
 						""")
 		self.update_bottom_label("TypeWritr v. 0.0.1 by lostboycody")
+
+		
+		#Setup GridLayout, for window stretching purposes
+		self.grid_layout = QtGui.QGridLayout(self.widget)
+		self.grid_layout.setMargin(0)
+		self.grid_layout.setSpacing(0)
+		self.grid_layout.addWidget(self.textbox)
+		self.grid_layout.addWidget(self.bottom_label)
+		self.widget.setLayout(self.grid_layout)
 		
    	def create_text_box(self):
 		#TODO(Cody): Make editor window + editor resizable
    		self.textbox = QPlainTextEdit(self.widget)
-   		self.textbox.resize(900, 700)
+		self.textbox.setMinimumSize(self.WIDTH, self.HEIGHT)
 		self.textbox.setLineWrapMode(0)
    		self.textbox.setStyleSheet("""
    				.QPlainTextEdit {
@@ -115,7 +124,7 @@ class MainWindow(QMainWindow, TextBox_Window):
 		k = event.key()
 		m = int(event.modifiers())
 
-		#TODO(Cody): Handle Ctrl+X+S etc.
+		#TODO(Cody): Handle Ctrl+X+S, Ctrl+X+F etc.
 		#self.connect(QtGui.QShortcut(QtGui.QKeySequence('Crtl+X, Ctrl+S'), self), QtCore.SIGNAL('activated()'), self.file_save())
 		
 		if QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+S'):
