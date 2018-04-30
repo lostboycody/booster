@@ -21,7 +21,7 @@ class TextBox_Window(object):
 
 		#Set fixed size for now, until we can set resizable QTextEdit
 		self.WIDTH = 800
-		self.HEIGHT = 700
+		self.HEIGHT = 715
 		self.widget.setMinimumSize(self.WIDTH, self.HEIGHT)
 		self.widget.setAutoFillBackground(True)
 		MainWindow.setCentralWidget(self.widget)
@@ -57,7 +57,6 @@ class TextBox_Window(object):
 		self.widget.setLayout(self.grid_layout)
 		
    	def create_text_box(self):
-		#TODO(Cody): Make editor window + editor resizable
    		self.textbox = QPlainTextEdit(self.widget)
 		self.textbox.setMinimumSize(self.WIDTH, self.HEIGHT)
 		self.textbox.setLineWrapMode(0)
