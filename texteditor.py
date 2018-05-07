@@ -100,6 +100,7 @@ class TextBox_Window(QObject):
        		""")
    		self.textbox.setFrameStyle(QFrame.NoFrame)
    		self.textbox.setCursorWidth(8)
+		self.textbox.ensureCursorVisible()
 
    		self.font = QtGui.QFont()
    		self.font.setPointSize(11)
@@ -126,15 +127,15 @@ class TextBox_Window(QObject):
 		text = self.textbox.toPlainText()
 		
 		if TextBox_Window.file_opened:
-			file = open(self.open_name, 'w')
-			file.write(text)
-			file.close()
+			self.file = open(self.open_name, 'w')
+			self.file.write(text)
+			self.file.close()
 			self.update_bottom_label("Saved {}".format(self.open_name))
 		else:
 			self.save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')
-			file = open(self.save_name, 'w')
-			file.write(text)
-			file.close()
+			self.file = open(self.save_name, 'w')
+			self.file.write(text)
+			self.file.close()
 			self.update_bottom_label("Saved {}".format(self.save_name))
 			
 	def file_open(self):
@@ -142,10 +143,12 @@ class TextBox_Window(QObject):
 
 		self.open_name = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
 		if os.path.isfile(self.open_name):
-			file = open(self.open_name, 'r')
-			with file:
-				text = file.read()
+			self.file = open(self.open_name, 'r')
+			with self.file:
+				text = self.file.read()
 				self.textbox.setPlainText(text)
+				self.file_length = len(text)
+
 		else:
 			self.file_save()
 
@@ -172,27 +175,29 @@ class TextBox_Window(QObject):
 			if re.search('[Space-~]', self.block.text()) and self.block.next().next().text() != self.first_block.text():
 				self.block = self.block.next()
 			else:
+				if self.block.next().position() >= self.cursor.position() and self.block.next().position() != 0:
+  					self.block = self.block.next()
+					print "next: ", self.block.next().position()
 				self.cursor = self.textbox.textCursor()
 				self.cursor.setPosition(self.block.position())
 				self.textbox.setTextCursor(self.cursor)
-   				self.block = self.block.next()
-				break
+ 				break
 
 	#Ctrl + Up scrolling: moves cursor to next empty line above cursor
 	def previous_empty_line(self):
 		self.first_block = self.textbox.firstVisibleBlock()
 		
 		while self.block.isValid():
-			if re.search('[Space-~]', self.block.text()) and self.block.previous().previous().text() != self.first_block.text():
+			if re.search('[Space-~]', self.block.text()) and self.block.previous().previous().text() != "":
 				self.block = self.block.previous()
 			else:
+				if self.block.previous().position() > 0:
+   					self.block = self.block.previous()
 				self.cursor = self.textbox.textCursor()
 				self.cursor.setPosition(self.block.position())
 				self.textbox.setTextCursor(self.cursor)
-   				self.block = self.block.previous()
 				break
 
-			
 class MainWindow(QMainWindow, TextBox_Window):
 	
 	def __init__(self, parent = None):
