@@ -177,7 +177,6 @@ class TextBox_Window(QObject):
 			else:
 				if self.block.next().position() >= self.cursor.position() and self.block.next().position() != 0:
   					self.block = self.block.next()
-					print "next: ", self.block.next().position()
 				self.cursor = self.textbox.textCursor()
 				self.cursor.setPosition(self.block.position())
 				self.textbox.setTextCursor(self.cursor)
