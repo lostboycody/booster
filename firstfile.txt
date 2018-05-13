@@ -1,12 +1,19 @@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+								welcome to darkscrawl
+										by
+								    lostboycody
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-First file saved properly by TyperWiter!
+darkscrawl is an open-source, simple, and menacingly dark text editor. insprired by
+emacs, personalized for the dark and simple mind.
 
-Cody Azevedo 04/28/2018
+version- 
 
-~
-~
-~
-~
-~
+0.2
 
-Another edit. Should save as firstfile.txt
+controls-
+
+C-O: Open file. If none exists, darkscrawl will create the new file.
+C-S: Save file.
+C-F: Find in file. RET returns next result, if it exists.
+C-G: Quit find in file.
