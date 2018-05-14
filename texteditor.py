@@ -32,7 +32,6 @@ class TextBox_Window(QObject):
 		self.MIN_WIDTH = 785
 		self.MIN_HEIGHT = 595
 		self.widget.setMinimumSize(100, 100)
-		self.widget.resize(100, 100)
 		self.widget.setAutoFillBackground(True)
 		MainWindow.setCentralWidget(self.widget)
 		MainWindow.setWindowTitle("darkscrawl 0.2")
@@ -100,7 +99,7 @@ class TextBox_Window(QObject):
 
 		self.widget.setLayout(self.grid_layout)
 		self.grid_layout.addLayout(self.horizontal_layout, 600, 0)
-		self.search_displayed = 0
+		TextBox_Window.search_displayed = 0
 
 		self.update_bottom_label("darkscrawl 0.2 by lostboycody")
 
@@ -152,7 +151,7 @@ class TextBox_Window(QObject):
 		self.textbox.cursorPositionChanged.connect(self.highlight_current_line)
 
 		#Set default tab width to 4 spaces
-		self.font_metrics = QFontMetrics(self.font)
+		TextBox_Window.font_metrics = QFontMetrics(self.font)
 		self.textbox.setTabStopWidth(4 * self.font_metrics.width(' '))
 
 		self.block = self.textbox.firstVisibleBlock()
@@ -279,19 +278,19 @@ class TextBox_Window(QObject):
 
 	def setup_search_box(self):
 		#If not already displayed, create the search widget and add them to layout
-		if self.search_displayed == 0:
-			self.query = QLineEdit("")
+		if TextBox_Window.search_displayed == 0:
+			TextBox_Window.query = SearchLineEdit("")
 			self.query.setFixedHeight(self.font_metrics.height() + 2)
 			self.query.setFont(self.bottom_font)
 			self.query.setStyleSheet("""
-								.QLineEdit {
+								.SearchLineEdit {
 								background-color: #050505;
 								color: #BFBFBF;
 								border: 0px solid black;
 								}
 							""")
 
-			self.search_text = QtGui.QLabel(" Search:", parent = self.bottom_label)
+			TextBox_Window.search_text = QtGui.QLabel(" Search:", parent = self.bottom_label)
 			self.search_text.setFixedHeight(self.font_metrics.height() + 2)
 			self.search_text.setFont(self.bottom_font)
 			self.search_text.setStyleSheet("""
@@ -305,15 +304,15 @@ class TextBox_Window(QObject):
 
 			self.horizontal_layout.addWidget(self.search_text)
 			self.horizontal_layout.addWidget(self.query)
-			self.search_displayed = 1
+			TextBox_Window.search_displayed = 1
 
 		self.query.setFocus()
 		self.query.returnPressed.connect(self.search_in_file)
 
 	def remove_search_box(self):
-		self.search_text.setParent(None)
-		self.query.setParent(None)
-		self.search_displayed = 0		
+		TextBox_Window.search_text.setParent(None)
+		TextBox_Window.query.setParent(None)
+		TextBox_Window.search_displayed = 0		
 
 	def search_in_file(self):
 		self.text = self.textbox.toPlainText()
@@ -336,16 +335,15 @@ class TextBox_Window(QObject):
 		cursor.movePosition(QtGui.QTextCursor.Right, QtGui.QTextCursor.KeepAnchor, end - start)
 		self.textbox.setTextCursor(cursor)
 
-#class QLineEdit(QtGui.QLineEdit, TextBox_Window):
+#Custom QLineEdit for search query, removes search box when focus is lost
+class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
 
-#	def __init__(self, parent = None):
-#		super(QLineEdit, self).__init__(parent)
+	def __init__(self, parent = None):
+		super(SearchLineEdit, self).__init__(parent)
 		
-#	def focusOutEvent(self, event):
-#		super(QLineEdit, self).focusOutEvent(event)
-#		self.setFocusPolicy(QtCore.Qt.NoFocus)
-#		self.remove_search_box()
-		
+   	def focusOutEvent(self, event):
+		self.remove_search_box()
+	
 class MainWindow(QMainWindow, TextBox_Window):
 	
 	def __init__(self, parent = None):
@@ -371,13 +369,14 @@ class MainWindow(QMainWindow, TextBox_Window):
 			self.setup_search_box()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+G'):
 			self.remove_search_box()
-			
-	def sizeHint(self):
-		return QtCore.QSize(785, 595)
-	
+		#TODO(Cody): Implement split buffer to edit two files
+#		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+2'):
+#			self.split_buffer()
+				
 if __name__ == '__main__':
    	#Every PyQt4 app must create an application object, sys.argv is arguments from cmd line
 	app = QtGui.QApplication(sys.argv)
 	w = MainWindow()
+	w.resize(TextBox_Window.font_metrics.width(" ") * 89, TextBox_Window.font_metrics.lineSpacing() * 40)
 	w.show()
 	sys.exit(app.exec_())
