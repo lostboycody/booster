@@ -9,6 +9,7 @@ import re
 import string
 import ntpath
 import platform
+import syntax
 from threading import Thread
 from PyQt4 import QtCore
 from PyQt4.QtCore import *
@@ -16,7 +17,6 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import *
 
 class TextBox_Window(QObject):
-
 	file_opened = False
 		
 	def __init__(self, parent):
@@ -34,7 +34,7 @@ class TextBox_Window(QObject):
 		self.widget.setMinimumSize(100, 100)
 		self.widget.setAutoFillBackground(True)
 		MainWindow.setCentralWidget(self.widget)
-		MainWindow.setWindowTitle("darkscrawl 0.2")
+		MainWindow.setWindowTitle("darkscrawl 0.9 beta")
 
 		#Set widget background color to dark gray for debug purposes
 		palette = self.widget.palette()
@@ -101,7 +101,7 @@ class TextBox_Window(QObject):
 		self.grid_layout.addLayout(self.horizontal_layout, 600, 0)
 		TextBox_Window.search_displayed = 0
 
-		self.update_bottom_label("darkscrawl 0.2 by lostboycody")
+		self.update_bottom_label("darkscrawl by lostboycody")
 
 		self.textbox.setCursorWidth(self.font_metrics.width(" "))
 
@@ -156,6 +156,8 @@ class TextBox_Window(QObject):
 
 		self.block = self.textbox.firstVisibleBlock()
 		self.last_match = None
+
+		self.highlighter = syntax.DarkHighlighter(self.textbox.document())
 		
 	#Set cursor position text, update actual cursor position in document
 	#Updates actual cursor position when cursor is moved with a click or regular scrolling
@@ -335,15 +337,18 @@ class TextBox_Window(QObject):
 		cursor.movePosition(QtGui.QTextCursor.Right, QtGui.QTextCursor.KeepAnchor, end - start)
 		self.textbox.setTextCursor(cursor)
 
+#	def split_buffer(self):
+#		self.create_text_box_2()
+		
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
-
 	def __init__(self, parent = None):
 		super(SearchLineEdit, self).__init__(parent)
 		
    	def focusOutEvent(self, event):
 		self.remove_search_box()
-	
+
+		
 class MainWindow(QMainWindow, TextBox_Window):
 	
 	def __init__(self, parent = None):
