@@ -126,12 +126,9 @@ class TextBox_Window(QObject):
 		   	self.textbox.setPlainText(text)
 		   	self.file_length = len(text)
 			
-		self.open_name = os.path.realpath("firstfile.txt")
-		self.file_name = self.get_file_name(str(self.open_name))
-
-		self.file_label.setFixedWidth(self.font_metrics.width(self.file_name))
-		self.file_label.setText("{}".format(self.file_name))
+		self.file_label.setText("_")
 		self.update_cursor_position()
+		self.textbox.setReadOnly(True)
 
 			
    	def create_text_box(self):
@@ -196,6 +193,11 @@ class TextBox_Window(QObject):
 	def file_open(self, file):
 
 		TextBox_Window.file_opened = True
+		if "firstfile.txt" in str(os.path.abspath(file)):
+			self.textbox.setReadOnly(True)
+		else:
+			self.textbox.setReadOnly(False)
+		
 		#If the file exists, open it
 		if os.path.isfile(file):
 			self.file = open(file, 'r')
