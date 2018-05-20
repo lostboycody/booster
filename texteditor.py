@@ -43,7 +43,7 @@ class TextBox_Window(QObject):
 		#Set widget background color to dark gray for debug purposes
 		palette = self.widget.palette()
 		role = self.widget.backgroundRole()
-		palette.setColor(role, QColor(17, 17, 17))
+		palette.setColor(role, QColor("#121212"))
 		palette.setColor(QPalette.HighlightedText, QColor("red"))
 		self.widget.setPalette(palette)
 		
@@ -99,7 +99,12 @@ class TextBox_Window(QObject):
 	   	self.stacked_layout.setMargin(0)
 		self.stacked_layout.setSpacing(0)
 		self.stacked_layout.addWidget(self.textbox)
+
+		self.scroll_area = QScrollArea()
 		self.dialog_button_box = QDialogButtonBox(Qt.Vertical)
+		self.scroll_area.setWidget(self.dialog_button_box)
+		#TODO(Cody): Make this area truly scrollable when buttons surpass screen.
+		self.scroll_area.setWidgetResizable(True)
 		self.stacked_layout.addWidget(self.dialog_button_box)
 		
 		#Setup HBoxLayout for bottom_label sections
@@ -241,6 +246,10 @@ class TextBox_Window(QObject):
 			self.file.write(text)
 			self.file.close()
 			self.update_bottom_label("Wrote {}".format(self.save_name))
+			
+	#TODO(Cody): Create a new file when button pressed.
+	def open_new_file(self):
+		pass
 
 	def get_file_name(self, file_path):
 		if platform.system() == "Windows":
@@ -374,8 +383,8 @@ class TextBox_Window(QObject):
 	   	self.current_dir = os.chdir(os.getcwd())
 		self.dialog_button_box.clear()
 	   	self.bottom_label.setText(str(os.getcwd()))
-
   		self.previous_dir_button = QPushButton("/")
+		self.previous_dir_button.setMinimumSize(QSize(self.widget.width(), 30))
 	   	self.previous_dir_button.setStyleSheet("""
 	   	  						.QPushButton {
 	   	   						border: none;
@@ -397,6 +406,7 @@ class TextBox_Window(QObject):
 			path = os.path.join(os.getcwd(), f)
 			if os.path.isdir(path):
 				self.button = QPushButton(str(f))
+				self.button.setMinimumSize(QSize(40, 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton {
 	   	   							border: none;
@@ -419,6 +429,7 @@ class TextBox_Window(QObject):
 
 			else:
 	   	   		self.button = QPushButton(str(f))
+				self.button.setMinimumSize(QSize(40, 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton {
 	   	   							border: none;
@@ -437,6 +448,26 @@ class TextBox_Window(QObject):
 				#Workaround for connecting file_open while passing parameter to it
 				self.button.pressed.connect(partial(self.file_open, self.file_path))
 		   		self.dialog_button_box.addButton(self.button, QDialogButtonBox.ActionRole)
+
+		self.new_file_button = QPushButton("+ New file")
+	   	self.new_file_button.setStyleSheet("""
+	   	  						.QPushButton {
+	   	   						border: none;
+	   	   						background-color: #121212;
+								color: white;
+	   	   		   				text-align: left;
+		   						padding: 5px;
+	   	   						}
+		   						.QPushButton:focus {
+		   						outline: 0px;
+		   						border: 2px solid #007765;
+		   						}
+	   	   					""")
+		
+		self.new_file_button.setAutoDefault(True)
+		self.new_file_button.pressed.connect(self.open_new_file)
+		self.dialog_button_box.addButton(self.new_file_button, QDialogButtonBox.ActionRole)
+
 
 		self.stacked_layout.setCurrentIndex(1)
 
@@ -447,6 +478,7 @@ class TextBox_Window(QObject):
 		self.dialog_button_box.clear()
 		self.dialog_button_box.setFocus()
 		self.previous_dir_button = QPushButton("/")
+		self.previous_dir_button.setMinimumSize(QSize(40, 30))
 	   	self.previous_dir_button.setStyleSheet("""
 	   	  						.QPushButton {
 	   	   						border: none;
@@ -469,6 +501,7 @@ class TextBox_Window(QObject):
 			path = os.path.join(os.getcwd(), f)
 			if os.path.isdir(path):
 				self.button = QPushButton(str(f))
+				self.previous_dir_button.setMinimumSize(QSize(self.widget.width(), 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton {
 	   	   							border: none;
@@ -491,6 +524,7 @@ class TextBox_Window(QObject):
 
 			else:
 	   	   		self.button = QPushButton(str(f))
+				self.button.setMinimumSize(QSize(40, 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton {
 	   	   							border: none;
@@ -509,6 +543,26 @@ class TextBox_Window(QObject):
 				#Workaround for connecting file_open while passing parameter to it
 				self.button.pressed.connect(partial(self.file_open, self.file_path))
 		   		self.dialog_button_box.addButton(self.button, QDialogButtonBox.ActionRole)
+
+		self.new_file_button = QPushButton("+ New file")
+	   	self.new_file_button.setStyleSheet("""
+	   	  						.QPushButton {
+	   	   						border: none;
+	   	   						background-color: #121212;
+								color: white;
+	   	   		   				text-align: left;
+		   						padding: 5px;
+	   	   						}
+		   						.QPushButton:focus {
+		   						outline: 0px;
+		   						border: 2px solid #007765;
+		   						}
+	   	   					""")
+		
+		self.new_file_button.setAutoDefault(True)
+		self.new_file_button.pressed.connect(self.open_new_file)
+		self.dialog_button_box.addButton(self.new_file_button, QDialogButtonBox.ActionRole)
+		
 				
 		self.dialog_button_box.setFocus()
 		self.bottom_label.setText(str(os.getcwd()))
@@ -519,6 +573,7 @@ class TextBox_Window(QObject):
 		self.change_to_previous_dir = os.chdir("..")
 		self.dialog_button_box.clear()
 		self.previous_dir_button = QPushButton("/")
+		self.previous_dir_button.setMinimumSize(QSize(40, 30))
 	   	self.previous_dir_button.setStyleSheet("""
 	   	  						.QPushButton {
 	   	   						border: none;
@@ -541,6 +596,7 @@ class TextBox_Window(QObject):
 			path = os.path.join(os.getcwd(), f)
 			if os.path.isdir(path):
 				self.button = QPushButton(str(f))
+				self.previous_dir_button.setMinimumSize(QSize(self.widget.width(), 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton {
 	   	   							border: none;
@@ -563,6 +619,7 @@ class TextBox_Window(QObject):
 
 			else:
 	   	   		self.button = QPushButton(str(f))
+				self.button.setMinimumSize(QSize(40, 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton {
 	   	   							border: none;
@@ -581,6 +638,26 @@ class TextBox_Window(QObject):
 				#Workaround for connecting file_open while passing parameter to it
 				self.button.pressed.connect(partial(self.file_open, self.file_path))
 		   		self.dialog_button_box.addButton(self.button, QDialogButtonBox.ActionRole)
+
+		self.new_file_button = QPushButton("+ New file")
+	   	self.new_file_button.setStyleSheet("""
+	   	  						.QPushButton {
+	   	   						border: none;
+	   	   						background-color: #121212;
+								color: white;
+	   	   		   				text-align: left;
+		   						padding: 5px;
+	   	   						}
+		   						.QPushButton:focus {
+		   						outline: 0px;
+		   						border: 2px solid #007765;
+		   						}
+	   	   					""")
+		
+		self.new_file_button.setAutoDefault(True)
+		self.new_file_button.pressed.connect(self.open_new_file)
+		self.dialog_button_box.addButton(self.new_file_button, QDialogButtonBox.ActionRole)
+
 
 		self.dialog_button_box.setFocus()
 		self.bottom_label.setText(str(os.getcwd()))
