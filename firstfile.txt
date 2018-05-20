@@ -4,16 +4,16 @@
 								    lostboycody
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-darkscrawl is an open-source, simple, and menacingly dark text editor. insprired by
-emacs, personalized for the dark and simple mind.
+darkscrawl is an open-source, simple, and menacingly dark text editor. inspired by
+emacs, personalized for the dark and minimal mind.
 
 version- 
 
-0.2
+0.9 beta
 
 controls-
 
-C-O: Open file. If none exists, darkscrawl will create the new file.
+C-O: Open file browser. If none exists, darkscrawl will create the new file.
 C-S: Save file.
 C-F: Find in file. RET returns next result, if it exists.
 C-G: Quit find in file.
