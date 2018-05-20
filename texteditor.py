@@ -15,9 +15,13 @@ from PyQt4 import QtCore
 from PyQt4.QtCore import *
 from PyQt4 import QtGui
 from PyQt4.QtGui import *
+from functools import partial
 
 class TextBox_Window(QObject):
+
 	file_opened = False
+	dir_browser_open = False
+	dir_browser_opened = False
 		
 	def __init__(self, parent):
 		super(TextBox_Window, self).__init__(parent)
@@ -80,15 +84,24 @@ class TextBox_Window(QObject):
 							background-color: #0A0A0A;
 							color: #BFBFBF;
 							padding-top: 2px;
+							margin: 0;
+							height: 10px;
 							}
 						""")
-
+		
 		#Setup GridLayout, for window stretching purposes
 		self.grid_layout = QtGui.QGridLayout(self.widget)
 		self.grid_layout.setMargin(0)
 		self.grid_layout.setSpacing(0)
-		self.grid_layout.addWidget(self.textbox)
 
+		#Setup StackedLayout, for dir file browser
+		self.stacked_layout = QtGui.QStackedLayout(self.grid_layout)
+	   	self.stacked_layout.setMargin(0)
+		self.stacked_layout.setSpacing(0)
+		self.stacked_layout.addWidget(self.textbox)
+		self.dialog_button_box = QDialogButtonBox(Qt.Vertical)
+		self.stacked_layout.addWidget(self.dialog_button_box)
+		
 		#Setup HBoxLayout for bottom_label sections
 		self.horizontal_layout = QtGui.QHBoxLayout()
 		self.horizontal_layout.setMargin(0)
@@ -99,9 +112,10 @@ class TextBox_Window(QObject):
 
 		self.widget.setLayout(self.grid_layout)
 		self.grid_layout.addLayout(self.horizontal_layout, 600, 0)
+
 		TextBox_Window.search_displayed = 0
 
-		self.update_bottom_label("darkscrawl by lostboycody")
+		self.update_bottom_label("darkscrawl 0.9 beta by lostboycody")
 
 		self.textbox.setCursorWidth(self.font_metrics.width(" "))
 
@@ -127,7 +141,9 @@ class TextBox_Window(QObject):
    		self.textbox.setStyleSheet("""
    				.QPlainTextEdit {
            		background-color: #121212;
-           		color: #454545;
+				selection-color: #121212;
+				selection-background-color: #1A4722;
+           		color: #007765;
            		}
 				.QScrollBar {
 				height: 0px;
@@ -145,6 +161,11 @@ class TextBox_Window(QObject):
    		self.bottom_font = QtGui.QFont()
    		self.bottom_font.setPointSize(10)
    		self.bottom_font.setFamily("Consolas")
+
+		#Set color format back to gray, so cursor stays green
+		self.fmt = QTextCharFormat()
+		self.fmt.setForeground(QBrush(QColor("#454545")))
+		self.textbox.mergeCurrentCharFormat(self.fmt)
 		
 		#On cursor position update, update the label
 		self.textbox.cursorPositionChanged.connect(self.update_cursor_position)
@@ -157,8 +178,8 @@ class TextBox_Window(QObject):
 		self.block = self.textbox.firstVisibleBlock()
 		self.last_match = None
 
-		self.highlighter = syntax.DarkHighlighter(self.textbox.document())
-		
+		self.highlighter = syntax.DarkHighlighter(self.textbox.document())		
+
 	#Set cursor position text, update actual cursor position in document
 	#Updates actual cursor position when cursor is moved with a click or regular scrolling
 	def update_cursor_position(self):
@@ -170,51 +191,54 @@ class TextBox_Window(QObject):
 		self.block = self.document.findBlockByLineNumber(self.line - 1)
 
 		self.line_label.setText("L{}|C{}".format(self.line, self.col))
+
+
+	def file_open(self, file):
+
+		TextBox_Window.file_opened = True
+		#If the file exists, open it
+		if os.path.isfile(file):
+			self.file = open(file, 'r')
+			with self.file:
+				text = self.file.read()
+				self.textbox.setPlainText(text)
+				self.file_length = len(text)
+
+		self.file_name = self.get_file_name(file)
+		self.file_path = os.path.join(os.getcwd(), self.file_name)
+		self.update_bottom_label("Opened {}".format(self.file_path))
+
+		self.file_label.setText(self.file_name)
+	   	self.file_label.setFixedWidth(self.font_metrics.width(self.file_name))
 		
+		self.stacked_layout.setCurrentIndex(0)
+
+		self.block = self.textbox.firstVisibleBlock()
+		self.update_cursor_position()
+
+		#If the file doesn't exist, create new file
+#		elif not os.path.isfile(self.filename):
+#			text = ""
+#			self.textbox.setPlainText(text)
+#			self.file_length = len(text)
+#			self.file_save()
+
+		TextBox_Window.dir_browser_open = False
+
    	def file_save(self):
 		text = self.textbox.toPlainText()
 		
 		if TextBox_Window.file_opened:
-			self.file = open(self.open_name, 'w')
+			self.file = open(self.file_path, 'w')
 			self.file.write(text)
 			self.file.close()
-			self.update_bottom_label("Wrote {}".format(self.open_name))
+			self.update_bottom_label("Wrote {}".format(self.file_path))
 		else:
 			self.save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')
 			self.file = open(self.save_name, 'w')
 			self.file.write(text)
 			self.file.close()
 			self.update_bottom_label("Wrote {}".format(self.save_name))
-				
-	def file_open(self):
-		TextBox_Window.file_opened = True
-		self.dialog = QtGui.QFileDialog()
-		self.dialog.setFileMode(QFileDialog.AnyFile)
-
-		self.open_name = self.dialog.getOpenFileName(self, 'Open File')
-
-		#If the file exists, open it
-		if os.path.isfile(self.open_name):
-			self.file = open(self.open_name, 'r')
-			with self.file:
-				text = self.file.read()
-				self.textbox.setPlainText(text)
-				self.file_length = len(text)
-		#If the file doesn't exist, create new file
-		elif not os.path.isfile(self.open_name):
-			text = ""
-			self.textbox.setPlainText(text)
-			self.file_length = len(text)
-			self.file_save()
-
-		self.file_name = self.get_file_name(str(self.open_name))
-		self.update_bottom_label("Opened {}".format(self.open_name))
-		self.file_label.setText(self.file_name)
-	   	self.file_label.setFixedWidth(self.font_metrics.width(self.file_name))
-
-		self.block = self.textbox.firstVisibleBlock()
-		self.update_cursor_position()
-
 
 	def get_file_name(self, file_path):
 		if platform.system() == "Windows":
@@ -223,6 +247,11 @@ class TextBox_Window(QObject):
 		else:
 			head, tail = os.path.split(file_path)
 			return tail
+
+	#Method for passing full path generated by button presses in dir browser
+	def open_file_path(self):
+		self.file_path = str(os.path.join(os.getcwd(), f))
+		self.new_file_open(self.file_path)
 		
 	#Set the bottom label text, reset after 5 seconds
 	def update_bottom_label(self, bottomtext):
@@ -337,17 +366,231 @@ class TextBox_Window(QObject):
 		cursor.movePosition(QtGui.QTextCursor.Right, QtGui.QTextCursor.KeepAnchor, end - start)
 		self.textbox.setTextCursor(cursor)
 
-#	def split_buffer(self):
-#		self.create_text_box_2()
+	#Custom directory browser, more efficient than dialogbox
+	def open_dir_browser(self):
+		TextBox_Window.dir_browser_open = True;
+	   	self.current_dir = os.chdir(os.getcwd())
+		self.dialog_button_box.clear()
+	   	self.bottom_label.setText(str(os.getcwd()))
+
+  		self.previous_dir_button = QPushButton("/")
+	   	self.previous_dir_button.setStyleSheet("""
+	   	  						.QPushButton {
+	   	   						border: none;
+	   	   						background-color: #121212;
+	   	   		   				text-align: left;
+		   						padding: 5px;
+	   	   						}
+		   						.QPushButton:focus {
+		   						outline: 0px;
+		   						border: 2px solid #007765;
+		   						}
+	   	   					""")
 		
+		self.previous_dir_button.setAutoDefault(True)
+		self.previous_dir_button.pressed.connect(self.open_previous_dir)
+		self.dialog_button_box.addButton(self.previous_dir_button, QDialogButtonBox.ActionRole)
+
+		for f in os.listdir("."):
+			path = os.path.join(os.getcwd(), f)
+			if os.path.isdir(path):
+				self.button = QPushButton(str(f))
+	   	   		self.button.setStyleSheet("""
+	   	   							.QPushButton {
+	   	   							border: none;
+	   	   							background-color: #121212;
+									color: #009435;
+	   	   			   				text-align: left;
+		   							padding: 5px;
+	   	   							}
+		   							.QPushButton:focus {
+		   							outline: 0px;
+		   							border: 2px solid #007765;
+		   							}
+	   	   						""")
+			
+				self.button.setAutoDefault(True)
+				self.file_path = str(os.path.join(os.getcwd(), f))
+				#Workaround for connecting file_open while passing parameter to it
+				self.button.pressed.connect(partial(self.open_dir, f))
+		   		self.dialog_button_box.addButton(self.button, QDialogButtonBox.ActionRole)
+
+			else:
+	   	   		self.button = QPushButton(str(f))
+	   	   		self.button.setStyleSheet("""
+	   	   							.QPushButton {
+	   	   							border: none;
+	   	   							background-color: #121212;
+	   	   			   				text-align: left;
+		   							padding: 5px;
+	   	   							}
+		   							.QPushButton:focus {
+		   							outline: 0px;
+		   							border: 2px solid #007765;
+		   							}
+	   	   						""")
+			
+				self.button.setAutoDefault(True)
+				self.file_path = str(os.path.join(os.getcwd(), f))
+				#Workaround for connecting file_open while passing parameter to it
+				self.button.pressed.connect(partial(self.file_open, self.file_path))
+		   		self.dialog_button_box.addButton(self.button, QDialogButtonBox.ActionRole)
+
+		self.stacked_layout.setCurrentIndex(1)
+
+	#Open the next directory of the dir browser
+	def open_dir(self, directory):
+		TextBox_Window.dir_browser_open = True
+		os.chdir(os.path.join(os.getcwd(), directory))
+		self.dialog_button_box.clear()
+		self.dialog_button_box.setFocus()
+		self.previous_dir_button = QPushButton("/")
+	   	self.previous_dir_button.setStyleSheet("""
+	   	  						.QPushButton {
+	   	   						border: none;
+	   	   						background-color: #121212;
+	   	   		   				text-align: left;
+		   						padding: 5px;
+	   	   						}
+		   						.QPushButton:focus {
+		   						outline: 0px;
+		   						border: 2px solid #007765;
+		   						}
+	   	   					""")
+		
+		self.previous_dir_button.setAutoDefault(True)
+	   	self.previous_dir_button.pressed.connect(self.open_previous_dir)
+		self.dialog_button_box.addButton(self.previous_dir_button, QDialogButtonBox.ActionRole)
+		
+		for f in os.listdir("."):
+			#If button is a directory
+			path = os.path.join(os.getcwd(), f)
+			if os.path.isdir(path):
+				self.button = QPushButton(str(f))
+	   	   		self.button.setStyleSheet("""
+	   	   							.QPushButton {
+	   	   							border: none;
+	   	   							background-color: #121212;
+									color: #009435;
+	   	   			   				text-align: left;
+		   							padding: 5px;
+	   	   							}
+		   							.QPushButton:focus {
+		   							outline: 0px;
+		   							border: 2px solid #007765;
+		   							}
+	   	   						""")
+			
+				self.button.setAutoDefault(True)
+				self.file_path = str(os.path.join(os.getcwd(), f))
+				#Workaround for connecting file_open while passing parameter to it
+				self.button.pressed.connect(partial(self.open_dir, f))
+		   		self.dialog_button_box.addButton(self.button, QDialogButtonBox.ActionRole)
+
+			else:
+	   	   		self.button = QPushButton(str(f))
+	   	   		self.button.setStyleSheet("""
+	   	   							.QPushButton {
+	   	   							border: none;
+	   	   							background-color: #121212;
+	   	   			   				text-align: left;
+		   							padding: 5px;
+	   	   							}
+		   							.QPushButton:focus {
+		   							outline: 0px;
+		   							border: 2px solid #007765;
+		   							}
+	   	   						""")
+			
+				self.button.setAutoDefault(True)
+				self.file_path = str(os.path.join(os.getcwd(), f))
+				#Workaround for connecting file_open while passing parameter to it
+				self.button.pressed.connect(partial(self.file_open, self.file_path))
+		   		self.dialog_button_box.addButton(self.button, QDialogButtonBox.ActionRole)
+				
+		self.dialog_button_box.setFocus()
+		self.bottom_label.setText(str(os.getcwd()))
+
+	#Open the previous directory of the dir_browser
+	def open_previous_dir(self):
+		TextBox_Window.dir_browser_open = True
+		self.change_to_previous_dir = os.chdir("..")
+		self.dialog_button_box.clear()
+		self.previous_dir_button = QPushButton("/")
+	   	self.previous_dir_button.setStyleSheet("""
+	   	  						.QPushButton {
+	   	   						border: none;
+	   	   						background-color: #121212;
+	   	   		   				text-align: left;
+		   						padding: 5px;
+	   	   						}
+		   						.QPushButton:focus {
+		   						outline: 0px;
+		   						border: 2px solid #007765;
+		   						}
+	   	   					""")
+		
+		self.previous_dir_button.setAutoDefault(True)
+	   	self.previous_dir_button.pressed.connect(self.open_previous_dir)
+		self.dialog_button_box.addButton(self.previous_dir_button, QDialogButtonBox.ActionRole)
+		
+		for f in os.listdir("."):
+			#If button is a directory
+			path = os.path.join(os.getcwd(), f)
+			if os.path.isdir(path):
+				self.button = QPushButton(str(f))
+	   	   		self.button.setStyleSheet("""
+	   	   							.QPushButton {
+	   	   							border: none;
+	   	   							background-color: #121212;
+									color: #009435;
+	   	   			   				text-align: left;
+		   							padding: 5px;
+	   	   							}
+		   							.QPushButton:focus {
+		   							outline: 0px;
+		   							border: 2px solid #007765;
+		   							}
+	   	   						""")
+			
+				self.button.setAutoDefault(True)
+				self.file_path = str(os.path.join(os.getcwd(), f))
+				#Workaround for connecting file_open while passing parameter to it
+				self.button.pressed.connect(partial(self.open_dir, f))
+		   		self.dialog_button_box.addButton(self.button, QDialogButtonBox.ActionRole)
+
+			else:
+	   	   		self.button = QPushButton(str(f))
+	   	   		self.button.setStyleSheet("""
+	   	   							.QPushButton {
+	   	   							border: none;
+	   	   							background-color: #121212;
+	   	   			   				text-align: left;
+		   							padding: 5px;
+	   	   							}
+		   							.QPushButton:focus {
+		   							outline: 0px;
+		   							border: 2px solid #007765;
+		   							}
+	   	   						""")
+			
+				self.button.setAutoDefault(True)
+				self.file_path = str(os.path.join(os.getcwd(), f))
+				#Workaround for connecting file_open while passing parameter to it
+				self.button.pressed.connect(partial(self.file_open, self.file_path))
+		   		self.dialog_button_box.addButton(self.button, QDialogButtonBox.ActionRole)
+
+		self.dialog_button_box.setFocus()
+		self.bottom_label.setText(str(os.getcwd()))
+
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
+
 	def __init__(self, parent = None):
 		super(SearchLineEdit, self).__init__(parent)
 		
    	def focusOutEvent(self, event):
 		self.remove_search_box()
-
 		
 class MainWindow(QMainWindow, TextBox_Window):
 	
@@ -365,7 +608,8 @@ class MainWindow(QMainWindow, TextBox_Window):
 		if QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+S'):
 			self.file_save()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence("Ctrl+O"):
-			self.file_open()
+			if not TextBox_Window.dir_browser_open:
+				self.open_dir_browser()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Down'):
 			self.next_empty_line()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Up'):
@@ -374,6 +618,12 @@ class MainWindow(QMainWindow, TextBox_Window):
 			self.setup_search_box()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+G'):
 			self.remove_search_box()
+#		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Backspace:
+#			self.previous_dir()
+		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Escape:
+			self.stacked_layout.setCurrentIndex(0)
+			TextBox_Window.dir_browser_open = False
+			self.remove_bottom_label()
 		#TODO(Cody): Implement split buffer to edit two files
 #		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+2'):
 #			self.split_buffer()
@@ -382,6 +632,6 @@ if __name__ == '__main__':
    	#Every PyQt4 app must create an application object, sys.argv is arguments from cmd line
 	app = QtGui.QApplication(sys.argv)
 	w = MainWindow()
-	w.resize(TextBox_Window.font_metrics.width(" ") * 89, TextBox_Window.font_metrics.lineSpacing() * 40)
+	w.resize(TextBox_Window.font_metrics.width(" ") * 88, TextBox_Window.font_metrics.lineSpacing() * 40)
 	w.show()
 	sys.exit(app.exec_())
