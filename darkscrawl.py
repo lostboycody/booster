@@ -56,10 +56,13 @@ class MainWindow(QMainWindow, TextBox_Window):
 			self.setup_new_file()
 		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Backspace:
 			self.open_previous_dir()
-		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Escape:
-			self.stacked_layout.setCurrentIndex(0)
-			TextBox_Window.dir_browser_open = False
-			self.remove_bottom_label()
+#		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Escape:
+#			self.stacked_layout.setCurrentIndex(0)
+#			TextBox_Window.dir_browser_open = False
+#			self.remove_bottom_label()
+#			self.current_dir = os.chdir(os.path.dirname(TextBox_Window.current_file))
+#			print os.getcwd()
+
 
 		#TODO(Cody): Implement split buffer to edit two files
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+2'):
