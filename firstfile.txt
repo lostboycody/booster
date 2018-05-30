@@ -1,8 +1,6 @@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 								Welcome to Darkscrawl
 										by
 								    Cody Azevedo
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 Darkscrawl is an open-source, simple, and menacingly dark text editor. Inspired by
 emacs, personalized for the dark and minimal mind.
