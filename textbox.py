@@ -40,7 +40,6 @@ class TextBox_Window(QObject):
 		palette.setColor(role, QColor("#121212"))
 		palette.setColor(QPalette.HighlightedText, QColor("red"))
 		self.widget.setPalette(palette)
-	
 			
 		self.create_text_box()
 		
@@ -83,17 +82,29 @@ class TextBox_Window(QObject):
 							height: 10px;
 							}
 						""")
-		
+	
+		#Setup top label for browser section
+	
 		#Setup GridLayout, for window stretching purposes
 		self.grid_layout = QtGui.QGridLayout(self.widget)
 		self.grid_layout.setMargin(0)
 		self.grid_layout.setSpacing(0)
 
+		#Setup top browser line
+		self.browser_layout = QtGui.QHBoxLayout()
+		self.browser_layout.setMargin(0)
+		self.browser_layout.setSpacing(0)
+
+		self.grid_layout.addLayout(self.browser_layout, 0, 0)
+
 		#Setup StackedLayout, for dir file browser
-		self.stacked_layout = QtGui.QStackedLayout(self.grid_layout)
+#		self.stacked_layout = QtGui.QStackedLayout(self.grid_layout)
+		self.stacked_layout = QtGui.QStackedLayout()
 	   	self.stacked_layout.setMargin(0)
 		self.stacked_layout.setSpacing(0)
 		self.stacked_layout.addWidget(self.textbox)
+
+		self.grid_layout.addLayout(self.stacked_layout, 1, 0)
 
 		self.scroll_area = QScrollArea()
 		self.dialog_button_box = QDialogButtonBox(Qt.Vertical)
@@ -114,7 +125,7 @@ class TextBox_Window(QObject):
 							}
 						""")
 		self.stacked_layout.addWidget(self.scroll_area)
-		
+
 		#Setup HBoxLayout for bottom_label sections
 		self.horizontal_layout = QtGui.QHBoxLayout()
 		self.horizontal_layout.setMargin(0)
@@ -241,6 +252,11 @@ class TextBox_Window(QObject):
 
 		TextBox_Window.dir_browser_open = False
 		self.textbox.setFocus()
+
+		#Replace bottom_label after file browser closes
+		self.horizontal_layout.addWidget(self.bottom_label)
+		self.horizontal_layout.addWidget(self.file_label)
+		self.horizontal_layout.addWidget(self.line_label)
 
    	def file_save(self):
 		text = self.textbox.toPlainText()
@@ -434,22 +450,31 @@ class TextBox_Window(QObject):
 
 	#Custom directory browser, more efficient than dialogbox
 	def open_dir_browser(self):
+		
 		TextBox_Window.dir_browser_open = True;
 		TextBox_Window.browser_buttons = 0;
+
+		#Display the browser directory and remove the bottom label
+		self.browser_layout.addWidget(self.bottom_label)
+		self.file_label.setParent(None)
+		self.line_label.setParent(None)
 
 	   	self.current_dir = os.chdir(os.getcwd())
 		self.dialog_button_box.clear()
 	   	self.bottom_label.setText(str(os.getcwd()))
 
 		#Previous directory button
-  		self.previous_dir_button = QPushButton("/")
+  		self.previous_dir_button = QPushButton("../")
 		self.previous_dir_button.setMinimumSize(QSize(self.widget.width(), 30))
 	   	self.previous_dir_button.setStyleSheet("""
 	   	  						.QPushButton {
 	   	   						border: none;
 	   	   						background-color: #121212;
+								color: #009435;
 	   	   		   				text-align: left;
 		   						padding: 5px;
+								font-family: Consolas;
+								font-size: 12px;
 	   	   						}
 		   						.QPushButton:focus {
 		   						outline: 0px;
@@ -474,6 +499,8 @@ class TextBox_Window(QObject):
 									color: #009435;
 	   	   			   				text-align: left;
 		   							padding: 5px;
+									font-family: Consolas;
+									font-size: 12px;
 	   	   							}
 		   							.QPushButton:focus {
 		   							outline: 0px;
@@ -494,8 +521,11 @@ class TextBox_Window(QObject):
 	   	   							.QPushButton {
 	   	   							border: none;
 	   	   							background-color: #121212;
+									color: #afafaf;
 	   	   			   				text-align: left;
 		   							padding: 5px;
+									font-family: Consolas;
+									font-size: 12px;
 	   	   							}
 		   							.QPushButton:focus {
 		   							outline: 0px;
@@ -512,18 +542,20 @@ class TextBox_Window(QObject):
 		#a new file in that directory
 		self.new_file_button = QPushButton("+ New file")
 	   	self.new_file_button.setStyleSheet("""
-	   	  						.QPushButton {
-	   	   						border: none;
-	   	   						background-color: #121212;
-								color: white;
-	   	   		   				text-align: left;
-		   						padding: 5px;
-	   	   						}
-		   						.QPushButton:focus {
-		   						outline: 0px;
-		   						border: 2px solid #007765;
-		   						}
-	   	   					""")
+		   	  						.QPushButton {
+		   	   						border: none;
+		   	   						background-color: #121212;
+									color: white;
+		   	   		   				text-align: left;
+			   						padding: 5px;
+									font-family: Consolas;
+									font-size: 12px;
+	   		   						}
+		   							.QPushButton:focus {
+		   							outline: 0px;
+		   							border: 2px solid #007765;
+		   							}
+	   	   						""")
 		self.new_file_button.setAutoDefault(True)
 		self.new_file_button.pressed.connect(self.setup_new_file)
 		self.dialog_button_box.addButton(self.new_file_button, QDialogButtonBox.ActionRole)
