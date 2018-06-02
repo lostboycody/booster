@@ -116,12 +116,15 @@ class TextBox_Window(QObject):
 							height: 0px;
 							width: 0px;
 							background-color: transparent;
+							border: 0px solid black;
 							}
 							QScrollArea {
 							background-color: transparent;
+							border: 0px solid black;
 							}
 							QWidget {
 							background-color: transparent;
+							border: 0px solid black;
 							}
 						""")
 		self.stacked_layout.addWidget(self.scroll_area)
@@ -163,8 +166,8 @@ class TextBox_Window(QObject):
    		self.textbox.setStyleSheet("""
    				.QPlainTextEdit {
            		background-color: #121212;
-				selection-color: #121212;
-				selection-background-color: #1A4722;
+				selection-color: white;
+				selection-background-color: black;
            		color: #007765;
            		}
 				.QScrollBar {
@@ -191,7 +194,8 @@ class TextBox_Window(QObject):
 		
 		#On cursor position update, update the label
 		self.textbox.cursorPositionChanged.connect(self.update_cursor_position)
-		self.textbox.cursorPositionChanged.connect(self.highlight_current_line)
+		#Disable this for now. Add option later?
+#		self.textbox.cursorPositionChanged.connect(self.highlight_current_line)
 
 		#Set default tab width to 4 spaces
 		TextBox_Window.font_metrics = QFontMetrics(self.font)
@@ -255,6 +259,13 @@ class TextBox_Window(QObject):
 
 		#Replace bottom_label after file browser closes
 		self.horizontal_layout.addWidget(self.bottom_label)
+		self.bottom_label.setStyleSheet("""
+							.QLabel {
+							background-color: #0A0A0A;
+							color: #BFBFBF;
+							padding-top: 2px;
+							}
+						""")
 		self.horizontal_layout.addWidget(self.file_label)
 		self.horizontal_layout.addWidget(self.line_label)
 
@@ -336,7 +347,8 @@ class TextBox_Window(QObject):
 		t.start()
 		
 	def remove_bottom_label(self):
-		self.bottom_label.setText("")
+		if not TextBox_Window.dir_browser_open:
+			self.bottom_label.setText("")
 
 	#Ctrl + Down scrolling: moves cursor to next block of code
 	def next_empty_line(self):
@@ -456,6 +468,14 @@ class TextBox_Window(QObject):
 
 		#Display the browser directory and remove the bottom label
 		self.browser_layout.addWidget(self.bottom_label)
+		self.bottom_label.setStyleSheet("""
+							.QLabel {
+							background-color: #AFAFAF;
+							color: black;
+							padding-top: 2px;
+							font-weight: bold;
+							}
+						""")
 		self.file_label.setParent(None)
 		self.line_label.setParent(None)
 
@@ -521,7 +541,7 @@ class TextBox_Window(QObject):
 	   	   							.QPushButton {
 	   	   							border: none;
 	   	   							background-color: #121212;
-									color: #afafaf;
+									color: #AFAFAF;
 	   	   			   				text-align: left;
 		   							padding: 5px;
 									font-family: Consolas;
