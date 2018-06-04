@@ -56,17 +56,20 @@ class MainWindow(QMainWindow, TextBox_Window):
 			self.setup_new_file()
 		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Backspace:
 			self.open_previous_dir()
+		#TODO(Cody): Implement split buffer to edit two files
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+2'):
+			self.split_buffer()
+#		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+H'):
+#			self.hide_title_bar(self)
+#		elif TextBox_Window.dir_browser_open == False:
+#			if type(event) == QtGui.QKeyEvent and event.key() == QtCore.Qt.Key_Return:
+#				self.auto_indent()
 #		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Escape:
 #			self.stacked_layout.setCurrentIndex(0)
 #			TextBox_Window.dir_browser_open = False
 #			self.remove_bottom_label()
 #			self.current_dir = os.chdir(os.path.dirname(TextBox_Window.current_file))
 #			print os.getcwd()
-
-
-		#TODO(Cody): Implement split buffer to edit two files
-		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+2'):
-			self.split_buffer()
 				
 if __name__ == '__main__':
 	#Every PyQt4 app must create an application object, sys.argv is arguments from cmd line
@@ -74,4 +77,5 @@ if __name__ == '__main__':
 	w = MainWindow()
 	w.resize(TextBox_Window.font_metrics.width(" ") * 88, TextBox_Window.font_metrics.lineSpacing() * 40)
 	w.show()
+
 	sys.exit(app.exec_())
