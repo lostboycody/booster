@@ -232,16 +232,16 @@ class TextBox_Window(QObject):
 		if os.path.isfile(file):
 			self.file = open(file, 'r')
 			with self.file:
-				text = self.file.read()
-				self.textbox.setPlainText(text)
-				self.file_length = len(text)			
+				self.open_text = self.file.read()
+				self.textbox.setPlainText(self.open_text)
+				self.file_length = len(self.open_text)			
 
 		#If the file doesn't exist, create new file and write blank text to textbox
 		if not os.path.isfile(file):
 			self.file_save()
-			text = ""
-			self.textbox.setPlainText(text)
-			self.file_length = len(text)
+			self.open_text = ""
+			self.textbox.setPlainText(self.open_text)
+			self.file_length = len(self.open_text)
 
 		self.file_name = self.get_file_name(file)
 		self.file_path = os.path.join(os.getcwd(), self.file_name)
@@ -271,19 +271,26 @@ class TextBox_Window(QObject):
 		self.browser_layout.addWidget(self.line_label)
 
    	def file_save(self):
-		text = self.textbox.toPlainText()
+		self.save_text = self.textbox.toPlainText()
 		
 		#If the file has been opened, save it automatically
 		if TextBox_Window.file_opened:
 			self.file = open(self.file_path, 'w')
-			self.file.write(text)
-			self.file.close()
-			self.update_bottom_label("Wrote {}".format(self.file_path))
+
+			#If the file has been modified, save it
+			if self.open_text != self.save_text:	
+				self.file.write(self.save_text)
+				self.file.close()
+				self.update_bottom_label("Wrote {}".format(self.file_path))
+				self.open_text = self.save_text
+			elif self.open_text == self.save_text:
+				self.update_bottom_label("No changes need to be saved")
+				
 		#Safekeeping, *just in case* the file hasn't been opened / doesn't exist yet
 		else:
 			self.save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')
 			self.file = open(self.save_name, 'w')
-			self.file.write(text)
+			self.file.write(self.save_text)
 			self.file.close()
 			self.update_bottom_label("Wrote {}".format(self.save_name))
 			
