@@ -16,6 +16,7 @@ from functools import partial
 
 class TextBox_Window(QObject):
 
+	title_visible = True
 	file_opened = False
 	dir_browser_open = False
 	dir_browser_opened = False
@@ -32,7 +33,7 @@ class TextBox_Window(QObject):
 		self.widget.setMinimumSize(100, 100)
 		self.widget.setAutoFillBackground(True)
 		MainWindow.setCentralWidget(self.widget)
-		MainWindow.setWindowTitle("darkscrawl 0.9 beta")
+		MainWindow.setWindowTitle("darkscrawl")
 
 		#Set widget background color to dark gray for debug purposes
 		palette = self.widget.palette()
@@ -44,42 +45,46 @@ class TextBox_Window(QObject):
 		self.create_text_box()
 		
 		#Bottom command label, for use in seeing what the editor is doing
-		self.bottom_label = QtGui.QLabel("", self)
-		self.bottom_label.setFixedHeight(self.font_metrics.height() + 2)
-		self.bottom_label.setFont(self.bottom_font)
-		self.bottom_label.setStyleSheet("""
+		self.main_text_label = QtGui.QLabel("", self)
+		self.main_text_label.setFixedHeight(self.font_metrics.height() + 6)
+		self.main_text_label.setFont(self.bottom_font)
+		self.main_text_label.setStyleSheet("""
 							.QLabel {
 							background-color: #0A0A0A;
 							color: #BFBFBF;
-							padding-top: 2px;
+							padding-top: 4px;
+							font-size: 14px;
 							}
 						""")
 
 		#Line widget, for keeping line, char count
-		self.line_label = QtGui.QLabel("", parent = self.bottom_label)
-		self.line_label.setFixedHeight(self.font_metrics.height() + 2)
-		self.line_label.setFixedWidth(70)
+		self.line_label = QtGui.QLabel("", parent = self.main_text_label)
+		self.line_label.setFixedHeight(self.font_metrics.height() + 6)
+		self.line_label.setFixedWidth(90)
 		self.line_label.setFont(self.bottom_font)
 		self.line_label.setAlignment(QtCore.Qt.AlignRight)
 		self.line_label.setStyleSheet("""
 							.QLabel {
 							background-color: #0A0A0A;
 							color: #BFBFBF;
-							padding-top: 2px;
+							padding-top: 4px;
+							font-size: 14px;
 							}
 						""")
 
-		self.file_label = QtGui.QLabel("", parent = self.bottom_label)
-		self.file_label.setFixedHeight(self.font_metrics.height() + 2)
+		self.file_label = QtGui.QLabel("", parent = self.main_text_label)
+		self.file_label.setFixedHeight(self.font_metrics.height() + 6)
 		self.file_label.setFont(self.bottom_font)
 		self.file_label.setAlignment(QtCore.Qt.AlignRight)
 		self.file_label.setStyleSheet("""
 							.QLabel {
 							background-color: #0A0A0A;
 							color: #BFBFBF;
-							padding-top: 2px;
+							padding-top: 4px;
 							margin: 0;
 							height: 10px;
+							font-size: 14px;
+							font-weight: 700;
 							}
 						""")
 	
@@ -129,16 +134,12 @@ class TextBox_Window(QObject):
 						""")
 		self.stacked_layout.addWidget(self.scroll_area)
 
-		#Setup HBoxLayout for bottom_label sections
-		self.horizontal_layout = QtGui.QHBoxLayout()
-		self.horizontal_layout.setMargin(0)
-		self.horizontal_layout.setSpacing(0)
-		self.horizontal_layout.addWidget(self.bottom_label)
-		self.horizontal_layout.addWidget(self.file_label)
-		self.horizontal_layout.addWidget(self.line_label)
+		#Setup HBoxLayout for browser layout section
+		self.browser_layout.addWidget(self.main_text_label)
+		self.browser_layout.addWidget(self.file_label)
+		self.browser_layout.addWidget(self.line_label)
 
 		self.widget.setLayout(self.grid_layout)
-		self.grid_layout.addLayout(self.horizontal_layout, 600, 0)
 
 		TextBox_Window.search_displayed = False
 		TextBox_Window.new_file_displayed = False
@@ -204,7 +205,7 @@ class TextBox_Window(QObject):
 		self.block = self.textbox.firstVisibleBlock()
 		self.last_match = None
 
-		self.highlighter = syntax.DarkHighlighter(self.textbox.document())		
+		self.highlighter = syntax.DarkHighlighter(self.textbox.document())
 
 	#Set cursor position text, update actual cursor position in document
 	#Updates actual cursor position when cursor is moved with a click or regular scrolling
@@ -233,8 +234,8 @@ class TextBox_Window(QObject):
 			with self.file:
 				text = self.file.read()
 				self.textbox.setPlainText(text)
-				self.file_length = len(text)
-		
+				self.file_length = len(text)			
+
 		#If the file doesn't exist, create new file and write blank text to textbox
 		if not os.path.isfile(file):
 			self.file_save()
@@ -247,7 +248,7 @@ class TextBox_Window(QObject):
 		self.update_bottom_label("Opened {}".format(self.file_path))
 
 		self.file_label.setText(self.file_name)
-	   	self.file_label.setFixedWidth(self.font_metrics.width(self.file_name))
+	   	self.file_label.setFixedWidth(self.font_metrics.width(self.file_name) + 20)
 		
 		self.stacked_layout.setCurrentIndex(0)
 
@@ -258,16 +259,16 @@ class TextBox_Window(QObject):
 		self.textbox.setFocus()
 
 		#Replace bottom_label after file browser closes
-		self.horizontal_layout.addWidget(self.bottom_label)
-		self.bottom_label.setStyleSheet("""
+		self.main_text_label.setStyleSheet("""
 							.QLabel {
 							background-color: #0A0A0A;
 							color: #BFBFBF;
-							padding-top: 2px;
+							padding-top: 4px;
+							font-size: 14px;
 							}
 						""")
-		self.horizontal_layout.addWidget(self.file_label)
-		self.horizontal_layout.addWidget(self.line_label)
+		self.browser_layout.addWidget(self.file_label)
+		self.browser_layout.addWidget(self.line_label)
 
    	def file_save(self):
 		text = self.textbox.toPlainText()
@@ -292,31 +293,34 @@ class TextBox_Window(QObject):
 			self.remove_bottom_label()
 
 			TextBox_Window.new_file_name = SearchLineEdit("")
-			self.new_file_name.setFixedHeight(self.font_metrics.height() + 2)
+			self.new_file_name.setFixedHeight(self.font_metrics.height() + 6)
 			self.new_file_name.setFont(self.bottom_font)
 			self.new_file_name.setStyleSheet("""
 								.SearchLineEdit {
 								background-color: #050505;
 								color: #BFBFBF;
+								padding-top: 4px;
 								border: 0px solid black;
+								font-size: 14px;
 								}
 							""")
 
-			TextBox_Window.get_new_file = QtGui.QLabel(" New filename:", parent = self.bottom_label)
-			self.get_new_file.setFixedHeight(self.font_metrics.height() + 2)
+			TextBox_Window.get_new_file = QtGui.QLabel(" New filename:", parent = self.main_text_label)
+			self.get_new_file.setFixedHeight(self.font_metrics.height() + 6)
 			self.get_new_file.setFont(self.bottom_font)
 			self.get_new_file.setStyleSheet("""
 								.QLabel {
 								background-color: #050505;
 								color: #BFBFBF;
-								padding-top: 2px;
+								padding-top: 4px;
 								border: 0px solid black;
+								font-size: 14px;
 								}
 							""")
 
-			self.horizontal_layout.addWidget(self.get_new_file)
-			self.horizontal_layout.addWidget(self.new_file_name)
-			TextBox_Window.new_file_displayed = True
+			self.browser_layout.addWidget(self.get_new_file)
+			self.browser_layout.addWidget(self.new_file_name)
+			TextBox_Window.new_file_displayed = True			
 
 		self.new_file_name.setFocus()
 		self.new_file_name.returnPressed.connect(self.open_new_file)
@@ -342,13 +346,13 @@ class TextBox_Window(QObject):
 		
 	#Set the bottom label text, reset after 5 seconds
 	def update_bottom_label(self, bottomtext):
-		self.bottom_label.setText(bottomtext)
+		self.main_text_label.setText(bottomtext)
 		t = threading.Timer(5.0, self.remove_bottom_label)
 		t.start()
 		
 	def remove_bottom_label(self):
 		if not TextBox_Window.dir_browser_open:
-			self.bottom_label.setText("")
+			self.main_text_label.setText("")
 
 	#Ctrl + Down scrolling: moves cursor to next block of code
 	def next_empty_line(self):
@@ -400,33 +404,36 @@ class TextBox_Window(QObject):
 		#Prevent duplication from multiple consecutive searches
 		if TextBox_Window.search_displayed == False:
 			TextBox_Window.query = SearchLineEdit("")
-			self.query.setFixedHeight(self.font_metrics.height() + 2)
+			self.query.setFixedHeight(self.font_metrics.height() + 6)
 			self.query.setFont(self.bottom_font)
 			self.query.setStyleSheet("""
 								.SearchLineEdit {
 								background-color: #050505;
 								color: #BFBFBF;
 								border: 0px solid black;
+								font-size: 14px;
 								}
 							""")
 
-			TextBox_Window.search_text = QtGui.QLabel(" Search:", parent = self.bottom_label)
-			self.search_text.setFixedHeight(self.font_metrics.height() + 2)
+			TextBox_Window.search_text = QtGui.QLabel(" Search:", parent = self.main_text_label)
+			self.search_text.setFixedHeight(self.font_metrics.height() + 6)
 			self.search_text.setFont(self.bottom_font)
 			self.search_text.setStyleSheet("""
 								.QLabel {
 								background-color: #050505;
 								color: #BFBFBF;
-								padding-top: 2px;
+								padding-top: 4px;
 								border: 0px solid black;
+								font-size: 14px
 								}
 							""")
 
-			self.horizontal_layout.addWidget(self.search_text)
-			self.horizontal_layout.addWidget(self.query)
+			self.browser_layout.addWidget(self.search_text)
+			self.browser_layout.addWidget(self.query)
 			TextBox_Window.search_displayed = True
 
 		self.query.setFocus()
+		self.query.textChanged.connect(self.search_in_file)
 		self.query.returnPressed.connect(self.search_in_file)
 
 	def remove_search_box(self):
@@ -451,7 +458,7 @@ class TextBox_Window(QObject):
 			start = self.last_match.start()
 			end = self.last_match.end()
 
-			self.move_cursor(start, end)
+		self.move_cursor(start, end)
 			
 	#Move cursor to found text and highlight it
 	def move_cursor(self, start, end):
@@ -467,12 +474,13 @@ class TextBox_Window(QObject):
 		TextBox_Window.browser_buttons = 0;
 
 		#Display the browser directory and remove the bottom label
-		self.browser_layout.addWidget(self.bottom_label)
-		self.bottom_label.setStyleSheet("""
+#		self.browser_layout.addWidget(self.main_text_label)
+		self.main_text_label.setStyleSheet("""
 							.QLabel {
 							background-color: #AFAFAF;
 							color: black;
-							padding-top: 2px;
+							padding-top: 4px;
+							font-size: 14px;
 							font-weight: bold;
 							}
 						""")
@@ -481,7 +489,7 @@ class TextBox_Window(QObject):
 
 	   	self.current_dir = os.chdir(os.getcwd())
 		self.dialog_button_box.clear()
-	   	self.bottom_label.setText(str(os.getcwd()))
+	   	self.main_text_label.setText(str(os.getcwd()))
 
 		#Previous directory button
   		self.previous_dir_button = QPushButton("../")
@@ -494,7 +502,7 @@ class TextBox_Window(QObject):
 	   	   		   				text-align: left;
 		   						padding: 5px;
 								font-family: Consolas;
-								font-size: 12px;
+								font-size: 14px;
 	   	   						}
 		   						.QPushButton:focus {
 		   						outline: 0px;
@@ -520,7 +528,7 @@ class TextBox_Window(QObject):
 	   	   			   				text-align: left;
 		   							padding: 5px;
 									font-family: Consolas;
-									font-size: 12px;
+									font-size: 14px;
 	   	   							}
 		   							.QPushButton:focus {
 		   							outline: 0px;
@@ -545,7 +553,7 @@ class TextBox_Window(QObject):
 	   	   			   				text-align: left;
 		   							padding: 5px;
 									font-family: Consolas;
-									font-size: 12px;
+									font-size: 14px;
 	   	   							}
 		   							.QPushButton:focus {
 		   							outline: 0px;
@@ -569,7 +577,7 @@ class TextBox_Window(QObject):
 		   	   		   				text-align: left;
 			   						padding: 5px;
 									font-family: Consolas;
-									font-size: 12px;
+									font-size: 14px;
 	   		   						}
 		   							.QPushButton:focus {
 		   							outline: 0px;
@@ -582,6 +590,9 @@ class TextBox_Window(QObject):
 
 		self.stacked_layout.setCurrentIndex(1)
 		self.dialog_button_box.setFocus()
+
+		self.file_label.setParent(None)
+		self.line_label.setParent(None)
 
 	#Open the next directory of the dir browser
 	def open_dir(self, directory):
@@ -596,6 +607,25 @@ class TextBox_Window(QObject):
 		self.change_to_previous_dir = os.chdir("..")
 		self.dialog_button_box.clear()
 		self.open_dir_browser()
+
+	def hide_title_bar(self, MainWindow):
+		if TextBox_Window.title_visible == True:
+			MainWindow.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
+			title_visible = False
+		elif TextBox_Window.title_visible == False:
+			MainWindow.setWindowFlags(QtCore.Qt.WindowTitleHint)
+			title_visible = True
+
+	def split_buffer(self):
+		self.textbox2 = self.textbox;
+		
+		self.stacked_layout2 = QtGui.QStackedLayout()
+	   	self.stacked_layout2.setMargin(0)
+		self.stacked_layout2.setSpacing(0)
+		self.stacked_layout2.addWidget(self.textbox2)
+
+		self.grid_layout.addLayout(self.stacked_layout2, 1, 1)
+
 
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
