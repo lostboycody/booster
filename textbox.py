@@ -6,6 +6,7 @@ import string
 import ntpath
 import platform
 import syntax
+import copy
 from threading import Thread
 from PyQt4 import QtCore
 from PyQt4.QtCore import *
@@ -43,18 +44,14 @@ class TextBox_Window(QObject):
 		self.widget.setPalette(palette)
 			
 		self.create_text_box()
+		self.create_text_box2()
 		
 		#Bottom command label, for use in seeing what the editor is doing
 		self.main_text_label = QtGui.QLabel("", self)
 		self.main_text_label.setFixedHeight(self.font_metrics.height() + 6)
 		self.main_text_label.setFont(self.bottom_font)
 		self.main_text_label.setStyleSheet("""
-							.QLabel {
-							background-color: #0A0A0A;
-							color: #BFBFBF;
-							padding-top: 4px;
-							font-size: 14px;
-							}
+							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
 						""")
 
 		#Line widget, for keeping line, char count
@@ -64,12 +61,7 @@ class TextBox_Window(QObject):
 		self.line_label.setFont(self.bottom_font)
 		self.line_label.setAlignment(QtCore.Qt.AlignRight)
 		self.line_label.setStyleSheet("""
-							.QLabel {
-							background-color: #0A0A0A;
-							color: #BFBFBF;
-							padding-top: 4px;
-							font-size: 14px;
-							}
+							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
 						""")
 
 		self.file_label = QtGui.QLabel("", parent = self.main_text_label)
@@ -77,15 +69,7 @@ class TextBox_Window(QObject):
 		self.file_label.setFont(self.bottom_font)
 		self.file_label.setAlignment(QtCore.Qt.AlignRight)
 		self.file_label.setStyleSheet("""
-							.QLabel {
-							background-color: #0A0A0A;
-							color: #BFBFBF;
-							padding-top: 4px;
-							margin: 0;
-							height: 10px;
-							font-size: 14px;
-							font-weight: 700;
-							}
+							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; }
 						""")
 	
 		#Setup top label for browser section
@@ -117,20 +101,9 @@ class TextBox_Window(QObject):
 		self.scroll_area.setWidget(self.dialog_button_box)
 		self.scroll_area.setWidgetResizable(True)
 		self.scroll_area.setStyleSheet("""
-							QScrollBar {
-							height: 0px;
-							width: 0px;
-							background-color: transparent;
-							border: 0px solid black;
-							}
-							QScrollArea {
-							background-color: transparent;
-							border: 0px solid black;
-							}
-							QWidget {
-							background-color: transparent;
-							border: 0px solid black;
-							}
+							QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
+							QScrollArea { background-color: transparent; border: 0px solid black; }
+							QWidget { background-color: transparent; border: 0px solid black; }
 						""")
 		self.stacked_layout.addWidget(self.scroll_area)
 
@@ -165,16 +138,8 @@ class TextBox_Window(QObject):
 		self.textbox.setMinimumSize(10, 10)
 		self.textbox.setLineWrapMode(0)
    		self.textbox.setStyleSheet("""
-   				.QPlainTextEdit {
-           		background-color: #121212;
-				selection-color: white;
-				selection-background-color: black;
-           		color: #007765;
-           		}
-				.QScrollBar {
-				height: 0px;
-				width: 0px;
-				}
+   				.QPlainTextEdit { background-color: #121212; selection-color: white; selection-background-color: black; color: #007765; }
+				.QScrollBar { height: 0px; width: 0px; }
        		""")
    		self.textbox.setFrameStyle(QFrame.NoFrame)
 		self.textbox.ensureCursorVisible()
@@ -233,8 +198,11 @@ class TextBox_Window(QObject):
 			self.file = open(file, 'r')
 			with self.file:
 				self.open_text = self.file.read()
-				self.textbox.setPlainText(self.open_text)
 				self.file_length = len(self.open_text)			
+			if self.textbox2.hasFocus() == True:
+				self.textbox2.setPlainText(self.open_text)
+			else:
+				self.textbox.setPlainText(self.open_text)
 
 		#If the file doesn't exist, create new file and write blank text to textbox
 		if not os.path.isfile(file):
@@ -253,19 +221,14 @@ class TextBox_Window(QObject):
 		self.stacked_layout.setCurrentIndex(0)
 
 		self.block = self.textbox.firstVisibleBlock()
-		self.update_cursor_position()
+		self.update_cursor_position() 
 
 		TextBox_Window.dir_browser_open = False
 		self.textbox.setFocus()
 
 		#Replace bottom_label after file browser closes
 		self.main_text_label.setStyleSheet("""
-							.QLabel {
-							background-color: #0A0A0A;
-							color: #BFBFBF;
-							padding-top: 4px;
-							font-size: 14px;
-							}
+							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
 						""")
 		self.browser_layout.addWidget(self.file_label)
 		self.browser_layout.addWidget(self.line_label)
@@ -278,13 +241,16 @@ class TextBox_Window(QObject):
 			self.file = open(self.file_path, 'w')
 
 			#If the file has been modified, save it
-			if self.open_text != self.save_text:	
+			if self.open_text != self.save_text:
 				self.file.write(self.save_text)
 				self.file.close()
 				self.update_bottom_label("Wrote {}".format(self.file_path))
 				self.open_text = self.save_text
+			#Writing again. Inefficient but safe.
 			elif self.open_text == self.save_text:
 				self.update_bottom_label("No changes need to be saved")
+				self.file.write(self.save_text)
+				self.file.close() 
 				
 		#Safekeeping, *just in case* the file hasn't been opened / doesn't exist yet
 		else:
@@ -303,28 +269,14 @@ class TextBox_Window(QObject):
 			self.new_file_name.setFixedHeight(self.font_metrics.height() + 6)
 			self.new_file_name.setFont(self.bottom_font)
 			self.new_file_name.setStyleSheet("""
-								.SearchLineEdit {
-								background-color: #050505;
-								color: #BFBFBF;
-								padding-top: 4px;
-								border: 0px solid black;
-								font-size: 14px;
-								}
+								.SearchLineEdit { background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px; }
 							""")
-
 			TextBox_Window.get_new_file = QtGui.QLabel(" New filename:", parent = self.main_text_label)
 			self.get_new_file.setFixedHeight(self.font_metrics.height() + 6)
 			self.get_new_file.setFont(self.bottom_font)
 			self.get_new_file.setStyleSheet("""
-								.QLabel {
-								background-color: #050505;
-								color: #BFBFBF;
-								padding-top: 4px;
-								border: 0px solid black;
-								font-size: 14px;
-								}
+								.QLabel { background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px; }
 							""")
-
 			self.browser_layout.addWidget(self.get_new_file)
 			self.browser_layout.addWidget(self.new_file_name)
 			TextBox_Window.new_file_displayed = True			
@@ -414,27 +366,14 @@ class TextBox_Window(QObject):
 			self.query.setFixedHeight(self.font_metrics.height() + 6)
 			self.query.setFont(self.bottom_font)
 			self.query.setStyleSheet("""
-								.SearchLineEdit {
-								background-color: #050505;
-								color: #BFBFBF;
-								border: 0px solid black;
-								font-size: 14px;
-								}
+								.SearchLineEdit { background-color: #050505; color: #BFBFBF; border: 0px solid black; font-size: 14px; }
 							""")
-
 			TextBox_Window.search_text = QtGui.QLabel(" Search:", parent = self.main_text_label)
 			self.search_text.setFixedHeight(self.font_metrics.height() + 6)
 			self.search_text.setFont(self.bottom_font)
 			self.search_text.setStyleSheet("""
-								.QLabel {
-								background-color: #050505;
-								color: #BFBFBF;
-								padding-top: 4px;
-								border: 0px solid black;
-								font-size: 14px
-								}
+								.QLabel { background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px }
 							""")
-
 			self.browser_layout.addWidget(self.search_text)
 			self.browser_layout.addWidget(self.query)
 			TextBox_Window.search_displayed = True
@@ -464,7 +403,14 @@ class TextBox_Window(QObject):
 		if self.last_match:
 			start = self.last_match.start()
 			end = self.last_match.end()
-
+			self.query.setStyleSheet("""
+								.SearchLineEdit { background-color: #050505; color: #BFBFBF; border: 0px solid black; font-size: 14px; }
+								""")
+		else:
+			end = 0
+			self.query.setStyleSheet("""
+								.SearchLineEdit { background-color: #1E0000; color: #BFBFBF; border: 0px solid black; font-size: 14px; }
+								""")
 		self.move_cursor(start, end)
 			
 	#Move cursor to found text and highlight it
@@ -483,13 +429,7 @@ class TextBox_Window(QObject):
 		#Display the browser directory and remove the bottom label
 #		self.browser_layout.addWidget(self.main_text_label)
 		self.main_text_label.setStyleSheet("""
-							.QLabel {
-							background-color: #AFAFAF;
-							color: black;
-							padding-top: 4px;
-							font-size: 14px;
-							font-weight: bold;
-							}
+							.QLabel { background-color: #AFAFAF; color: black; padding-top: 4px; font-size: 14px; font-weight: bold; }
 						""")
 		self.file_label.setParent(None)
 		self.line_label.setParent(None)
@@ -502,19 +442,8 @@ class TextBox_Window(QObject):
   		self.previous_dir_button = QPushButton("../")
 		self.previous_dir_button.setMinimumSize(QSize(self.widget.width(), 30))
 	   	self.previous_dir_button.setStyleSheet("""
-	   	  						.QPushButton {
-	   	   						border: none;
-	   	   						background-color: #121212;
-								color: #009435;
-	   	   		   				text-align: left;
-		   						padding: 5px;
-								font-family: Consolas;
-								font-size: 14px;
-	   	   						}
-		   						.QPushButton:focus {
-		   						outline: 0px;
-		   						border: 2px solid #007765;
-		   						}
+	   	  						.QPushButton { border: none; background-color: #121212; color: #009435; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; }
+		   						.QPushButton:focus { outline: 0px; border: 2px solid #007765; }
 	   	   					""")
 		
 		self.previous_dir_button.setAutoDefault(True)
@@ -528,19 +457,8 @@ class TextBox_Window(QObject):
 				self.button = QPushButton(str(f))
 				self.button.setMinimumSize(QSize(40, 30))
 	   	   		self.button.setStyleSheet("""
-	   	   							.QPushButton {
-	   	   							border: none;
-	   	   							background-color: #121212;
-									color: #009435;
-	   	   			   				text-align: left;
-		   							padding: 5px;
-									font-family: Consolas;
-									font-size: 14px;
-	   	   							}
-		   							.QPushButton:focus {
-		   							outline: 0px;
-		   							border: 2px solid #007765;
-		   							}
+	   	   							.QPushButton { border: none; background-color: #121212; color: #009435; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; }
+		   							.QPushButton:focus { outline: 0px; border: 2px solid #007765; }
 	   	   						""")
 				self.button.setAutoDefault(True)
 				self.file_path = str(os.path.join(os.getcwd(), f))
@@ -553,19 +471,8 @@ class TextBox_Window(QObject):
 	   	   		self.button = QPushButton(str(f))
 				self.button.setMinimumSize(QSize(40, 30))
 	   	   		self.button.setStyleSheet("""
-	   	   							.QPushButton {
-	   	   							border: none;
-	   	   							background-color: #121212;
-									color: #AFAFAF;
-	   	   			   				text-align: left;
-		   							padding: 5px;
-									font-family: Consolas;
-									font-size: 14px;
-	   	   							}
-		   							.QPushButton:focus {
-		   							outline: 0px;
-		   							border: 2px solid #007765;
-		   							}
+	   	   							.QPushButton { border: none; background-color: #121212; color: #AFAFAF; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; }
+		   							.QPushButton:focus { outline: 0px; border: 2px solid #007765; }
 	   	   						""")
 				self.button.setAutoDefault(True)
 				self.file_path = str(os.path.join(os.getcwd(), f))
@@ -577,19 +484,8 @@ class TextBox_Window(QObject):
 		#a new file in that directory
 		self.new_file_button = QPushButton("+ New file")
 	   	self.new_file_button.setStyleSheet("""
-		   	  						.QPushButton {
-		   	   						border: none;
-		   	   						background-color: #121212;
-									color: white;
-		   	   		   				text-align: left;
-			   						padding: 5px;
-									font-family: Consolas;
-									font-size: 14px;
-	   		   						}
-		   							.QPushButton:focus {
-		   							outline: 0px;
-		   							border: 2px solid #007765;
-		   							}
+		   	  						.QPushButton { border: none; background-color: #121212; color: white; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; }
+		   							.QPushButton:focus { outline: 0px; border: 2px solid #007765; }
 	   	   						""")
 		self.new_file_button.setAutoDefault(True)
 		self.new_file_button.pressed.connect(self.setup_new_file)
@@ -623,15 +519,43 @@ class TextBox_Window(QObject):
 			MainWindow.setWindowFlags(QtCore.Qt.WindowTitleHint)
 			title_visible = True
 
-	def split_buffer(self):
-		self.textbox2 = self.textbox;
+   	def create_text_box2(self):
+   		self.textbox2 = QPlainTextEdit(self.widget)
+		self.textbox2.setMinimumSize(10, 10)
+		self.textbox2.setLineWrapMode(0)
+   		self.textbox2.setStyleSheet("""
+   				.QPlainTextEdit { background-color: #121212; selection-color: white; selection-background-color: black; color: #007765; border-left: 1px solid #121212; }
+				.QScrollBar { height: 0px; width: 0px; }
+       		""")
+   		self.textbox2.setFrameStyle(QFrame.NoFrame)
+		self.textbox2.ensureCursorVisible()
+   		self.textbox2.setFont(self.font)
+
+		self.textbox2.mergeCurrentCharFormat(self.fmt)
 		
+		self.textbox2.setCursorWidth(self.font_metrics.width(" "))
+		self.textbox2.setTabStopWidth(4 * self.font_metrics.width(' '))
+
+		self.textbox2.cursorPositionChanged.connect(self.update_cursor_position)
+		self.block = self.textbox2.firstVisibleBlock()
+		self.last_match = None
+
+		self.highlighter2 = syntax.DarkHighlighter(self.textbox2.document())
+
+
+	def split_buffer(self):
+		
+		#TODO(Cody): Detect focus of last used textbox, so we can open the file in
+		# the correct one.
 		self.stacked_layout2 = QtGui.QStackedLayout()
+		self.grid_layout.addLayout(self.stacked_layout2, 1, 1)
 	   	self.stacked_layout2.setMargin(0)
 		self.stacked_layout2.setSpacing(0)
 		self.stacked_layout2.addWidget(self.textbox2)
 
-		self.grid_layout.addLayout(self.stacked_layout2, 1, 1)
+		self.textbox2.setPlainText("This is a second buffer")
+	
+		self.textbox2.setFocus()
 
 
 #Custom QLineEdit for search query, removes search box when focus is lost
