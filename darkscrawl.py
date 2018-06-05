@@ -56,11 +56,9 @@ class MainWindow(QMainWindow, TextBox_Window):
 			self.setup_new_file()
 		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Backspace:
 			self.open_previous_dir()
-		#TODO(Cody): Implement split buffer to edit two files
-		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+2'):
+		#TODO(Cody): Allow opening file in second buffer
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+X'):
 			self.split_buffer()
-#		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+H'):
-#			self.hide_title_bar(self)
 #		elif TextBox_Window.dir_browser_open == False:
 #			if type(event) == QtGui.QKeyEvent and event.key() == QtCore.Qt.Key_Return:
 #				self.auto_indent()
