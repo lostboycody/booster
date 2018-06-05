@@ -9,8 +9,9 @@ emacs, personalized for the dark and minimal mind.
 0.9 beta
 
 -CONTROLS-
-C-O: Open file browser. If none exists, darkscrawl will create the new file.
+C-O: Open file browser.
 C-S: Save file.
 C-N: New file. You can also create a new file in the directory browser.
 C-F: Find in file. RET returns next result, if it exists.
-C-G: Quit command line.
+C-G: Exit top browser bar / command line.
+C-X: Split the window.
