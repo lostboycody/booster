@@ -6,7 +6,6 @@ import string
 import ntpath
 import platform
 import syntax
-import copy
 from threading import Thread
 from PyQt4 import QtCore
 from PyQt4.QtCore import *
@@ -43,13 +42,17 @@ class TextBox_Window(QObject):
 		palette.setColor(QPalette.HighlightedText, QColor("red"))
 		self.widget.setPalette(palette)
 			
+   		self.font = QtGui.QFont()
+   		self.font.setPointSize(11)
+   		self.font.setFamily("Consolas")
+
 		self.create_text_box()
 		self.create_text_box2()
 		
 		#Bottom command label, for use in seeing what the editor is doing
 		self.main_text_label = QtGui.QLabel("", self)
 		self.main_text_label.setFixedHeight(self.font_metrics.height() + 6)
-		self.main_text_label.setFont(self.bottom_font)
+		self.main_text_label.setFont(self.font)
 		self.main_text_label.setStyleSheet("""
 							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
 						""")
@@ -58,7 +61,7 @@ class TextBox_Window(QObject):
 		self.line_label = QtGui.QLabel("", parent = self.main_text_label)
 		self.line_label.setFixedHeight(self.font_metrics.height() + 6)
 		self.line_label.setFixedWidth(90)
-		self.line_label.setFont(self.bottom_font)
+		self.line_label.setFont(self.font)
 		self.line_label.setAlignment(QtCore.Qt.AlignRight)
 		self.line_label.setStyleSheet("""
 							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
@@ -66,7 +69,7 @@ class TextBox_Window(QObject):
 
 		self.file_label = QtGui.QLabel("", parent = self.main_text_label)
 		self.file_label.setFixedHeight(self.font_metrics.height() + 6)
-		self.file_label.setFont(self.bottom_font)
+		self.file_label.setFont(self.font)
 		self.file_label.setAlignment(QtCore.Qt.AlignRight)
 		self.file_label.setStyleSheet("""
 							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; }
@@ -120,6 +123,7 @@ class TextBox_Window(QObject):
 		self.update_bottom_label("darkscrawl 0.9 beta by lostboycody")
 
 		self.textbox.setCursorWidth(self.font_metrics.width(" "))
+		self.textbox2.setCursorWidth(self.font_metrics.width(" "))
 
 		#Open the intro file, as read only
 		self.file = open("firstfile.txt", 'r')
@@ -134,43 +138,20 @@ class TextBox_Window(QObject):
 
 	#Custom QPlainTextEdit
    	def create_text_box(self):
-   		self.textbox = QPlainTextEdit(self.widget)
-		self.textbox.setMinimumSize(10, 10)
-		self.textbox.setLineWrapMode(0)
-   		self.textbox.setStyleSheet("""
-   				.QPlainTextEdit { background-color: #121212; selection-color: white; selection-background-color: black; color: #007765; }
-				.QScrollBar { height: 0px; width: 0px; }
-       		""")
-   		self.textbox.setFrameStyle(QFrame.NoFrame)
-		self.textbox.ensureCursorVisible()
+   		self.textbox = DarkPlainTextEdit(self.widget)
 
-   		self.font = QtGui.QFont()
-   		self.font.setPointSize(11)
-   		self.font.setFamily("Consolas")
-   		self.textbox.setFont(self.font)
-
-   		self.bottom_font = QtGui.QFont()
-   		self.bottom_font.setPointSize(10)
-   		self.bottom_font.setFamily("Consolas")
-
-		#Set color format back to gray, so cursor stays green
-		self.fmt = QTextCharFormat()
-		self.fmt.setForeground(QBrush(QColor("#454545")))
-		self.textbox.mergeCurrentCharFormat(self.fmt)
-		
 		#On cursor position update, update the label
 		self.textbox.cursorPositionChanged.connect(self.update_cursor_position)
-		#Disable this for now. Add option later?
-#		self.textbox.cursorPositionChanged.connect(self.highlight_current_line)
 
-		#Set default tab width to 4 spaces
-		TextBox_Window.font_metrics = QFontMetrics(self.font)
-		self.textbox.setTabStopWidth(4 * self.font_metrics.width(' '))
-
-		self.block = self.textbox.firstVisibleBlock()
+	#New instance for split buffer capabilities
+   	def create_text_box2(self):
+   		self.textbox2 = DarkPlainTextEdit(self.widget)
+		
+		self.textbox2.cursorPositionChanged.connect(self.update_cursor_position)
+		self.block = self.textbox2.firstVisibleBlock()
 		self.last_match = None
 
-		self.highlighter = syntax.DarkHighlighter(self.textbox.document())
+		self.highlighter2 = syntax.DarkHighlighter(self.textbox2.document())
 
 	#Set cursor position text, update actual cursor position in document
 	#Updates actual cursor position when cursor is moved with a click or regular scrolling
@@ -267,25 +248,26 @@ class TextBox_Window(QObject):
 
 			TextBox_Window.new_file_name = SearchLineEdit("")
 			self.new_file_name.setFixedHeight(self.font_metrics.height() + 6)
-			self.new_file_name.setFont(self.bottom_font)
+			self.new_file_name.setFont(self.font)
 			self.new_file_name.setStyleSheet("""
 								.SearchLineEdit { background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px; }
 							""")
 			TextBox_Window.get_new_file = QtGui.QLabel(" New filename:", parent = self.main_text_label)
 			self.get_new_file.setFixedHeight(self.font_metrics.height() + 6)
-			self.get_new_file.setFont(self.bottom_font)
+			self.get_new_file.setFont(self.font)
 			self.get_new_file.setStyleSheet("""
 								.QLabel { background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px; }
 							""")
 			self.browser_layout.addWidget(self.get_new_file)
 			self.browser_layout.addWidget(self.new_file_name)
-			TextBox_Window.new_file_displayed = True			
+			TextBox_Window.new_file_displayed = True
 
 		self.new_file_name.setFocus()
 		self.new_file_name.returnPressed.connect(self.open_new_file)
 
 	def open_new_file(self):
 		self.new_file_path = os.path.join(os.getcwd(), str(self.new_file_name.text()))
+		self.open_text = ""
 		self.file_open(self.new_file_path)
 
 	#Return the file name itself, rather than the abspath
@@ -364,13 +346,13 @@ class TextBox_Window(QObject):
 		if TextBox_Window.search_displayed == False:
 			TextBox_Window.query = SearchLineEdit("")
 			self.query.setFixedHeight(self.font_metrics.height() + 6)
-			self.query.setFont(self.bottom_font)
+			self.query.setFont(self.font)
 			self.query.setStyleSheet("""
 								.SearchLineEdit { background-color: #050505; color: #BFBFBF; border: 0px solid black; font-size: 14px; }
 							""")
 			TextBox_Window.search_text = QtGui.QLabel(" Search:", parent = self.main_text_label)
 			self.search_text.setFixedHeight(self.font_metrics.height() + 6)
-			self.search_text.setFont(self.bottom_font)
+			self.search_text.setFont(self.font)
 			self.search_text.setStyleSheet("""
 								.QLabel { background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px }
 							""")
@@ -511,40 +493,7 @@ class TextBox_Window(QObject):
 		self.dialog_button_box.clear()
 		self.open_dir_browser()
 
-	def hide_title_bar(self, MainWindow):
-		if TextBox_Window.title_visible == True:
-			MainWindow.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
-			title_visible = False
-		elif TextBox_Window.title_visible == False:
-			MainWindow.setWindowFlags(QtCore.Qt.WindowTitleHint)
-			title_visible = True
-
-   	def create_text_box2(self):
-   		self.textbox2 = QPlainTextEdit(self.widget)
-		self.textbox2.setMinimumSize(10, 10)
-		self.textbox2.setLineWrapMode(0)
-   		self.textbox2.setStyleSheet("""
-   				.QPlainTextEdit { background-color: #121212; selection-color: white; selection-background-color: black; color: #007765; border-left: 1px solid #121212; }
-				.QScrollBar { height: 0px; width: 0px; }
-       		""")
-   		self.textbox2.setFrameStyle(QFrame.NoFrame)
-		self.textbox2.ensureCursorVisible()
-   		self.textbox2.setFont(self.font)
-
-		self.textbox2.mergeCurrentCharFormat(self.fmt)
-		
-		self.textbox2.setCursorWidth(self.font_metrics.width(" "))
-		self.textbox2.setTabStopWidth(4 * self.font_metrics.width(' '))
-
-		self.textbox2.cursorPositionChanged.connect(self.update_cursor_position)
-		self.block = self.textbox2.firstVisibleBlock()
-		self.last_match = None
-
-		self.highlighter2 = syntax.DarkHighlighter(self.textbox2.document())
-
-
-	def split_buffer(self):
-		
+	def split_buffer(self):		
 		#TODO(Cody): Detect focus of last used textbox, so we can open the file in
 		# the correct one.
 		self.stacked_layout2 = QtGui.QStackedLayout()
@@ -553,10 +502,64 @@ class TextBox_Window(QObject):
 		self.stacked_layout2.setSpacing(0)
 		self.stacked_layout2.addWidget(self.textbox2)
 
-		self.textbox2.setPlainText("This is a second buffer")
-	
+		self.textbox2.setPlainText("This is a second buffer.\nFor notes and unwanted text. (So far)")
 		self.textbox2.setFocus()
 
+
+class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
+	
+	def __init__(self, parent = None):
+		super(DarkPlainTextEdit, self).__init__(parent)
+
+		self.editor = QPlainTextEdit()
+		self.setMinimumSize(10, 10)
+		self.setLineWrapMode(0)
+   		self.setStyleSheet("""
+   				.DarkPlainTextEdit { background-color: #121212; selection-color: white; selection-background-color: black; color: #007765; }
+				.QScrollBar { height: 0px; width: 0px; }
+       		""")
+   		self.setFrameStyle(QFrame.NoFrame)
+		self.ensureCursorVisible()
+
+   		self.font = QtGui.QFont()
+   		self.font.setPointSize(11)
+   		self.font.setFamily("Consolas")
+   		self.setFont(self.font)
+
+		#Set color format back to gray, so cursor stays green
+		self.fmt = QTextCharFormat()
+		self.fmt.setForeground(QBrush(QColor("#454545")))
+		self.mergeCurrentCharFormat(self.fmt)
+		
+		#Set default tab width to 4 spaces
+		TextBox_Window.font_metrics = QFontMetrics(self.font)
+		self.setTabStopWidth(4 * self.font_metrics.width(' '))
+
+		self.block = self.firstVisibleBlock()
+		self.last_match = None
+
+		self.highlighter = syntax.DarkHighlighter(self.document())
+
+	#Release instead of press event for RETURN insert syncing
+	def keyReleaseEvent(self, event):
+		k = event.key()
+
+		if k == QtCore.Qt.Key_Return:
+			self.auto_indent()
+
+	#Detect indentation of previous line and insert tabs accordingly
+	def auto_indent(self):
+		self.cursor = self.textCursor()
+		self.line = self.cursor.blockNumber() + 1
+	   	self.col = self.cursor.columnNumber()
+
+		self.document_text = self.document()
+		self.block = self.document_text.findBlockByLineNumber(self.line - 2)
+
+		tab = "\t"
+		string_beginning = len(str(self.block.text())) - len(str(self.block.text()).lstrip(tab))
+		for i in range(string_beginning):
+			self.cursor.insertText("\t")
 
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
