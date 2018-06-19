@@ -22,7 +22,7 @@ class TextBox_Window(QObject):
 	dir_browser_opened = False
 	active_window = ""
 	file_name = ""
-	file_name_2 = ""
+	file_name_2 = ""	
 	file_path = ""
 	file_path_2 = ""
 	main_file_path = ""
@@ -78,7 +78,6 @@ class TextBox_Window(QObject):
 		self.grid_layout.addLayout(self.browser_layout2, 0, 1)
 
 		#Setup StackedLayout, for dir file browser
-#		self.stacked_layout = QtGui.QStackedLayout(self.grid_layout)
 		self.stacked_layout = QtGui.QStackedLayout()
 	   	self.stacked_layout.setMargin(0)
 		self.stacked_layout.setSpacing(0)
@@ -261,10 +260,8 @@ class TextBox_Window(QObject):
 			self.open_text = ""
 			if TextBox_Window.active_window == "Textbox2":
 				self.textbox2.setPlainText(self.open_text)
-				self.textbox2.setFocus()
 			else:
 				self.textbox.setPlainText(self.open_text)
-				self.textbox.setFocus()
 			self.file_length = len(self.open_text)
 
 		self.file_name = self.get_file_name(file)
@@ -279,7 +276,12 @@ class TextBox_Window(QObject):
 			self.file_label.setText(self.file_name)
 		   	self.file_label.setFixedWidth(self.font_metrics.width(self.file_name) + 20)
 			
-		self.stacked_layout.setCurrentIndex(0)
+		if TextBox_Window.active_window == "Textbox2":
+			self.stacked_layout.setCurrentIndex(0)
+			self.textbox2.setFocus()
+		else:
+			self.stacked_layout.setCurrentIndex(0)
+			self.textbox.setFocus()
 
 		if TextBox_Window.active_window == "Textbox2":
 			self.block = self.textbox2.firstVisibleBlock()
@@ -300,7 +302,7 @@ class TextBox_Window(QObject):
 						""")
 		self.browser_layout.addWidget(self.file_label)
 		self.browser_layout.addWidget(self.line_label)
-
+			
    	def file_save(self):
 		if TextBox_Window.active_window == "Textbox2":
 			self.save_text = self.textbox2.toPlainText()
@@ -389,43 +391,6 @@ class TextBox_Window(QObject):
 			self.main_text_label.setText("")
 			self.main_text_label2.setText("")
 
-	#Ctrl + Down scrolling: moves cursor to next block of code
-	def next_empty_line(self):
-		#For checking first line in document
-		if TextBox_Window.active_window == "Textbox2":
-			self.first_block = self.textbox2.firstVisibleBlock()
-		else:
-			self.first_block = self.textbox.firstVisibleBlock()
-		
-		while self.block.isValid():
-			if re.search('[^\s*$]', self.block.text()) and self.block.next().next().text() != self.first_block.text():
-				self.block = self.block.next()
-			else:
-				if self.block.next().position() >= self.cursor.position() and self.block.next().position() != 0:
-					self.block = self.block.next()
-				self.cursor = self.textbox.textCursor()
-				self.cursor.setPosition(self.block.position())
-				self.textbox.setTextCursor(self.cursor)
- 				break
-
-	#Ctrl + Up scrolling: moves cursor to previous block of code
-	def previous_empty_line(self):
-		if TextBox_Window.active_window == "Textbox2":
-			self.first_block = self.textbox2.firstVisibleBlock()
-		else:
-			self.first_block = self.textbox.firstVisibleBlock()
-		
-		while self.block.isValid():
-			if re.search('[^\s*$]', self.block.text()) and self.block.previous().previous().text() != "":
-				self.block = self.block.previous()
-			else:
-				if self.block.previous().position() > 0:
-   					self.block = self.block.previous()
-				self.cursor = self.textbox.textCursor()
-				self.cursor.setPosition(self.block.position())
-				self.textbox.setTextCursor(self.cursor)
-				break
-
 	def highlight_current_line(self):
 		self.extraSelections = []
 		if not self.textbox.isReadOnly():
@@ -456,9 +421,15 @@ class TextBox_Window(QObject):
 			self.search_text.setStyleSheet("""
 								.QLabel { background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px }
 							""")
-			self.browser_layout.addWidget(self.search_text)
-			self.browser_layout.addWidget(self.query)
-			TextBox_Window.search_displayed = True
+							
+			if TextBox_Window.active_window == "Textbox2":
+				self.browser_layout2.addWidget(self.search_text)
+				self.browser_layout2.addWidget(self.query)
+			else:
+				self.browser_layout.addWidget(self.search_text)
+				self.browser_layout.addWidget(self.query)
+		
+		TextBox_Window.search_displayed = True
 
 		self.query.setFocus()
 		self.query.textChanged.connect(self.search_in_file)
@@ -475,7 +446,11 @@ class TextBox_Window(QObject):
 		TextBox_Window.new_file_displayed = False
 
 	def search_in_file(self):
-		self.text = self.textbox.toPlainText()
+		if TextBox_Window.active_window == "Textbox2":
+			self.text = self.textbox2.toPlainText()
+		else:
+			self.text = self.textbox.toPlainText()
+			
 		query = str(self.query.text())
 		flags = re.I
 		pattern = re.compile(query, flags)
@@ -497,10 +472,17 @@ class TextBox_Window(QObject):
 			
 	#Move cursor to found text and highlight it
 	def move_cursor(self, start, end):
-		cursor = self.textbox.textCursor()
+		if TextBox_Window.active_window == "Textbox2":
+			cursor = self.textbox2.textCursor()
+		else:
+			cursor = self.textbox.textCursor()
 		cursor.setPosition(start)
 		cursor.movePosition(QtGui.QTextCursor.Right, QtGui.QTextCursor.KeepAnchor, end - start)
-		self.textbox.setTextCursor(cursor)
+
+		if TextBox_Window.active_window == "Textbox2":
+			self.textbox2.setTextCursor(cursor)
+		else:
+			self.textbox.setTextCursor(cursor)
 
 	#Custom directory browser, more efficient than dialogbox
 	def open_dir_browser(self):
@@ -577,7 +559,7 @@ class TextBox_Window(QObject):
 
 		self.file_label.setParent(None)
 		self.line_label.setParent(None)
-
+		
 	#Open the next directory of the dir browser
 	def open_dir(self, directory):
 		TextBox_Window.dir_browser_open = True
@@ -638,30 +620,32 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 			self.auto_indent()
 			
 		QtGui.QPlainTextEdit.keyReleaseEvent(self, event)
-	
+
+	#Handle custom keyevents that occur in the editor	
 	def keyPressEvent(self, event):
    		k = event.key()
 		m = int(event.modifiers())
 
 		if QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+X'):
-			self.split_buffer()
+			if not DarkPlainTextEdit.is_window_split:
+				self.split_buffer()
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Up'):
+			self.previous_empty_line()
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Down'):
+			self.next_empty_line()
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+E'):
+			self.end_of_line()
 			
 		QtGui.QPlainTextEdit.keyPressEvent(self, event)
 		
 	def focusInEvent(self, event):
-		TextBox_Window.active_window = self.objectName()
+		TextBox_Window.active_window = self.objectName()		
 		super(DarkPlainTextEdit, self).focusInEvent(event)
 
 		if TextBox_Window.active_window == "Textbox2":
 			TextBox_Window.main_file_path = TextBox_Window.file_path_2
-#			TextBox_Window.browser_layout.addWidget(TextBox_Window.main_text_label, 0, 1)
-#			TextBox_Window.browser_layout.addWidget(TextBox_Window.file_label, 0, 1)
-#			TextBox_Window.browser_layout.addWidget(TextBox_Window.line_label, 0, 1)
 		else:
 			TextBox_Window.main_file_path = TextBox_Window.file_path
-#			TextBox_Window.browser_layout.addWidget(TextBox_Window.main_text_label, 0, 0)
-#			TextBox_Window.browser_layout.addWidget(TextBox_Window.file_label, 0, 0)
-#			TextBox_Window.browser_layout.addWidget(TextBox_Window.line_label, 0, 0)
 			
 	#Split the window to enable editing two files
 	def split_buffer(self):
@@ -697,7 +681,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.cursor = self.textCursor()
 		self.line = self.cursor.blockNumber() + 1
 		self.col = self.cursor.columnNumber()
-
+		
 		self.document_text = self.document()
 		self.block = self.document_text.findBlockByLineNumber(self.line - 2)
 
@@ -709,7 +693,52 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		
 		tab_string = "".join(tab_array)
 		self.cursor.insertText(tab_string)
+		
+	#Ctrl + Down scrolling: moves cursor to next block of code
+	def next_empty_line(self):			
+		self.cursor = self.textCursor()
+		self.line = self.cursor.blockNumber() + 1
+		self.document_text = self.document()
+		self.block = self.document_text.findBlockByLineNumber(self.line - 1)
+	
+		self.first_block = self.firstVisibleBlock()
+		
+		while self.block.isValid():
+			if re.search('[^\s*$]', self.block.text()) and self.block.next().next().text() != self.first_block.text():
+				self.block = self.block.next()
+			else:
+				if self.block.next().position() >= self.cursor.position() and self.block.next().position() != 0:
+					self.block = self.block.next()
+					self.cursor = self.textCursor()
+					self.cursor.setPosition(self.block.position())
+					self.setTextCursor(self.cursor)
+ 				break
 
+	#Ctrl + Up scrolling: moves cursor to previous block of code
+	def previous_empty_line(self):
+		self.cursor = self.textCursor()
+		self.line = self.cursor.blockNumber() + 1
+		self.document_text = self.document()
+		self.block = self.document_text.findBlockByLineNumber(self.line - 1)
+
+		self.first_block = self.firstVisibleBlock()
+		
+		while self.block.isValid():
+			if re.search('[^\s*$]', self.block.text()) and self.block.previous().previous().text() != "":
+				self.block = self.block.previous()
+			else:
+				if self.block.previous().position() > 0:
+   					self.block = self.block.previous()
+					self.cursor = self.textCursor()
+					self.cursor.setPosition(self.block.position())
+					self.setTextCursor(self.cursor)
+				break
+				
+	def end_of_line(self):
+		self.block = self.document_text.findBlockByLineNumber(self.line - 1)
+
+		self.cursor.setPosition(len(str(self.block.text())))
+		self.setTextCursor(self.cursor)
 
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
