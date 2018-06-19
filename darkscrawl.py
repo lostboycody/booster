@@ -41,10 +41,6 @@ class MainWindow(QMainWindow, TextBox_Window):
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence("Ctrl+O"):
 			if not TextBox_Window.dir_browser_open:
 				self.open_dir_browser()
-		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Down'):
-			self.next_empty_line()
-		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Up'):
-			self.previous_empty_line()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+F'):
 			self.setup_search_box()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+G'):
@@ -56,12 +52,6 @@ class MainWindow(QMainWindow, TextBox_Window):
 			self.setup_new_file()
 		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Backspace:
 			self.open_previous_dir()
-		#TODO(Cody): Allow opening file in second buffer
-		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+X'):
-			self.split_buffer()
-#		elif TextBox_Window.dir_browser_open == False:
-#			if type(event) == QtGui.QKeyEvent and event.key() == QtCore.Qt.Key_Return:
-#				self.auto_indent()
 #		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Escape:
 #			self.stacked_layout.setCurrentIndex(0)
 #			TextBox_Window.dir_browser_open = False
