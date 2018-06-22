@@ -22,7 +22,7 @@ class TextBox_Window(QObject):
 	dir_browser_opened = False
 	active_window = ""
 	file_name = ""
-	file_name_2 = ""	
+	file_name_2 = ""
 	file_path = ""
 	file_path_2 = ""
 	main_file_path = ""
@@ -48,42 +48,80 @@ class TextBox_Window(QObject):
 		palette.setColor(QPalette.HighlightedText, QColor("red"))
 		self.widget.setPalette(palette)
 			
-   		self.font = QtGui.QFont()
-   		self.font.setPointSize(11)
-   		self.font.setFamily("Consolas")
+		self.font = QtGui.QFont()
+		self.font.setPointSize(11)
+		self.font.setFamily("Consolas")
 
 		self.create_text_box()
 		self.create_text_box2()
 		
 		self.create_browser_bar()
 		self.create_browser_bar2()
-		self.line_label2.setHidden(not self.line_label2.isHidden())
 		self.file_label2.setHidden(not self.file_label2.isHidden())				
+		self.filemode_label2.setHidden(not self.line_label2.isHidden())
+		self.line_label2.setHidden(not self.line_label2.isHidden())
 			
 		#Setup GridLayout, for window stretching purposes
 		TextBox_Window.grid_layout = QtGui.QGridLayout(self.widget)
 		self.grid_layout.setMargin(0)
 		self.grid_layout.setSpacing(0)
+		self.grid_layout.setColumnStretch(0, 2)
+
+		#Outer container widgets for each window
+		TextBox_Window.outer_widget_1 = QScrollArea(self.widget)
+		self.outer_widget_1.setStyleSheet("""
+							QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
+							QScrollArea { background-color: transparent; border: 0px solid black; }
+							QWidget { background-color: transparent; }
+						""")
+		TextBox_Window.outer_widget_2 = QScrollArea(self.widget)
+		self.outer_widget_2.setStyleSheet("""
+							QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
+							QScrollArea { background-color: transparent; border: 0px solid black; }
+							QWidget { background-color: transparent; border-left: 1px solid #0A0A0A; }
+						""")
+		
+		#Splitter, for dragging margin between split windows
+		TextBox_Window.splitter = QSplitter(self.widget)
+		self.splitter.setHandleWidth(1)
+		self.splitter.addWidget(self.outer_widget_1)
 
 		#Setup top browser line
-		self.browser_layout = QtGui.QHBoxLayout()
+		TextBox_Window.browser_layout = QtGui.QHBoxLayout()
 		self.browser_layout.setMargin(0)
 		self.browser_layout.setSpacing(0)
 		
-		self.browser_layout2 = QtGui.QHBoxLayout()
+		TextBox_Window.browser_layout2 = QtGui.QHBoxLayout()
 		self.browser_layout2.setMargin(0) 
 		self.browser_layout2.setSpacing(0)
+		
+		TextBox_Window.browser_layout_widget = QScrollArea()
+		self.browser_layout_widget.setStyleSheet("""
+							QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
+							QScrollArea { background-color: transparent; border: 0px solid black; }
+							QWidget { background-color: transparent; border: 0px solid black; }
+						""")
+		self.browser_layout_widget.setLayout(self.browser_layout)
+		self.browser_layout_widget.setFixedHeight(self.font_metrics.height() + 6)
 
-		self.grid_layout.addLayout(self.browser_layout, 0, 0)
-		self.grid_layout.addLayout(self.browser_layout2, 0, 1)
+		TextBox_Window.browser_layout_widget2 = QScrollArea(self.widget)
+		self.browser_layout_widget2.setStyleSheet("""
+							QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
+							QScrollArea { background-color: transparent; border: 0px solid black; }
+							QWidget { background-color: transparent; border: 0px solid black; }
+						""")
+		self.browser_layout_widget2.setLayout(self.browser_layout2)
+		self.browser_layout_widget2.setFixedHeight(self.font_metrics.height() + 6)
+
+		self.grid_layout.addWidget(self.browser_layout_widget, 0, 0)
 
 		#Setup StackedLayout, for dir file browser
-		self.stacked_layout = QtGui.QStackedLayout()
+		self.stacked_layout = QtGui.QStackedLayout(self.outer_widget_1)
 	   	self.stacked_layout.setMargin(0)
 		self.stacked_layout.setSpacing(0)
 		self.stacked_layout.addWidget(self.textbox)
 
-		self.grid_layout.addLayout(self.stacked_layout, 1, 0)
+		self.grid_layout.addWidget(self.splitter, 1, 0)
 
 		self.scroll_area = QScrollArea()
 		self.dialog_button_box = QDialogButtonBox(Qt.Vertical)
@@ -101,12 +139,13 @@ class TextBox_Window(QObject):
 		#Setup HBoxLayout for browser layout section
 		self.browser_layout.addWidget(self.main_text_label)
 		self.browser_layout.addWidget(self.file_label)
+		self.browser_layout.addWidget(self.filemode_label)
 		self.browser_layout.addWidget(self.line_label)
 
 		self.browser_layout2.addWidget(self.main_text_label2)
 		self.browser_layout2.addWidget(self.file_label2)
+		self.browser_layout2.addWidget(self.filemode_label2)
 		self.browser_layout2.addWidget(self.line_label2)
-
 		
 		self.widget.setLayout(self.grid_layout)
 
@@ -119,7 +158,7 @@ class TextBox_Window(QObject):
 		self.textbox2.setCursorWidth(self.font_metrics.width(" "))
 
 		#Open the intro file, as read only
-		self.file = open("firstfile.txt", 'r')
+		self.file = open("firstfile.txt", 'rb')
 		with self.file:
 		   	text = self.file.read()
 		   	self.textbox.setPlainText(text)
@@ -131,7 +170,7 @@ class TextBox_Window(QObject):
 
 	#Custom QPlainTextEdit
    	def create_text_box(self):
-   		self.textbox = DarkPlainTextEdit(self.widget)
+   		TextBox_Window.textbox = DarkPlainTextEdit(self.widget)
 
 		#On cursor position update, update the label
 		self.textbox.cursorPositionChanged.connect(self.update_cursor_position)
@@ -155,20 +194,10 @@ class TextBox_Window(QObject):
 		
 	def create_browser_bar(self):
 		#Top label, used for file info, search, file browser etc.
-		self.main_text_label = QtGui.QLabel("", self)
+		TextBox_Window.main_text_label = QtGui.QLabel("", self)
 		self.main_text_label.setFixedHeight(self.font_metrics.height() + 6)
 		self.main_text_label.setFont(self.font)
 		self.main_text_label.setStyleSheet("""
-							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
-						""")
-
-		#Line widget, for keeping line, char count
-		self.line_label = QtGui.QLabel("", parent = self.main_text_label)
-		self.line_label.setFixedHeight(self.font_metrics.height() + 6)
-		self.line_label.setFixedWidth(90)
-		self.line_label.setFont(self.font)
-		self.line_label.setAlignment(QtCore.Qt.AlignRight)
-		self.line_label.setStyleSheet("""
 							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
 						""")
 
@@ -180,13 +209,40 @@ class TextBox_Window(QObject):
 		self.file_label.setStyleSheet("""
 							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; }
 						""")
+						
+		#Line widget, for keeping line, char count
+		self.line_label = QtGui.QLabel("", parent = self.main_text_label)
+		self.line_label.setFixedHeight(self.font_metrics.height() + 6)
+		self.line_label.setFixedWidth(90)
+		self.line_label.setFont(self.font)
+		self.line_label.setAlignment(QtCore.Qt.AlignRight)
+		self.line_label.setStyleSheet("""
+							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; border-right: 2px solid #121212; }
+						""")
+
+		TextBox_Window.filemode_label = QtGui.QLabel("", parent = self.main_text_label)
+		self.filemode_label.setFixedHeight(self.font_metrics.height() + 6)
+		self.filemode_label.setFixedWidth(60)
+		self.filemode_label.setFont(self.font)
+		self.filemode_label.setAlignment(QtCore.Qt.AlignRight)
+		self.filemode_label.setStyleSheet("""
+							.QLabel { background-color: #0A0A0A; color: brown; padding-top: 4px; font-size: 14px; font-weight: 700; }
+						""")
 
 	def create_browser_bar2(self):
-		self.main_text_label2 = QtGui.QLabel("", self)
+		TextBox_Window.main_text_label2 = QtGui.QLabel(self.widget)
 		self.main_text_label2.setFixedHeight(self.font_metrics.height() + 6)
 		self.main_text_label2.setFont(self.font)
 		self.main_text_label2.setStyleSheet("""
-							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; border-left: 2px solid #121212; }
+							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px;}
+						""")
+
+		self.file_label2 = QtGui.QLabel("", parent = self.main_text_label)
+		self.file_label2.setFixedHeight(self.font_metrics.height() + 6)
+		self.file_label2.setFont(self.font)
+		self.file_label2.setAlignment(QtCore.Qt.AlignRight)
+		self.file_label2.setStyleSheet("""
+							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; }
 						""")
 
 		self.line_label2 = QtGui.QLabel("", parent = self.main_text_label)
@@ -198,14 +254,14 @@ class TextBox_Window(QObject):
 							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
 						""")
 
-		self.file_label2 = QtGui.QLabel("", parent = self.main_text_label)
-		self.file_label2.setFixedHeight(self.font_metrics.height() + 6)
-		self.file_label2.setFont(self.font)
-		self.file_label2.setAlignment(QtCore.Qt.AlignRight)
-		self.file_label2.setStyleSheet("""
-							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; }
+		TextBox_Window.filemode_label2 = QtGui.QLabel("", parent = self.main_text_label2)
+		self.filemode_label2.setFixedHeight(self.font_metrics.height() + 6)
+		self.filemode_label2.setFixedWidth(60)
+		self.filemode_label2.setFont(self.font)
+		self.filemode_label2.setAlignment(QtCore.Qt.AlignRight)
+		self.filemode_label2.setStyleSheet("""
+							.QLabel { background-color: #0A0A0A; color: brown; padding-top: 4px; font-size: 14px; font-weight: 700; }
 						""")
-
 
 	#Set cursor position text, update actual cursor position in document
 	#Updates actual cursor position when cursor is moved with a click or regular scrolling
@@ -241,7 +297,7 @@ class TextBox_Window(QObject):
 		
 		#If the file exists, open it and write to textbox
 		if os.path.isfile(file):
-			self.file = open(file, 'r')
+			self.file = open(file, 'rb')
 			with self.file:
 				self.open_text = self.file.read()
 				self.file_length = len(self.open_text)
@@ -265,31 +321,39 @@ class TextBox_Window(QObject):
 			self.file_length = len(self.open_text)
 
 		self.file_name = self.get_file_name(file)
-		self.file_path = os.path.join(os.getcwd(), self.file_name)
-		
+		self.file_path = os.path.join(os.getcwd(), self.file_name)		
 		self.update_bottom_label("Opened {}".format(self.file_path))
 
 		if TextBox_Window.active_window == "Textbox2":
 			self.file_label2.setText(self.file_name)
 		   	self.file_label2.setFixedWidth(self.font_metrics.width(self.file_name) + 20)
+			self.stacked_layout.setCurrentIndex(0)
+			self.block = self.textbox2.firstVisibleBlock()
+
+			try:
+				if "\r\n" in open(self.file_path, "rb").read():
+					self.filemode_label2.setText("*dos")
+				elif "\n" in open(self.file_path, "rb").read():
+					self.filemode_label2.setText("*nix")
+			except:
+				self.filemode_label2.setText("")
 		else:
 			self.file_label.setText(self.file_name)
 		   	self.file_label.setFixedWidth(self.font_metrics.width(self.file_name) + 20)
-			
-		if TextBox_Window.active_window == "Textbox2":
 			self.stacked_layout.setCurrentIndex(0)
-			self.textbox2.setFocus()
-		else:
-			self.stacked_layout.setCurrentIndex(0)
-			self.textbox.setFocus()
-
-		if TextBox_Window.active_window == "Textbox2":
-			self.block = self.textbox2.firstVisibleBlock()
-		else:
 			self.block = self.textbox.firstVisibleBlock()
 			
+			try:
+				if "\r\n" in open(self.file_path, "rb").read():
+					self.filemode_label.setText("*dos")
+				elif "\n" in open(self.file_path, "rb").read():
+					self.filemode_label.setText("*nix")
+			except:
+				self.filemode_label.setText("")
+
 		if DarkPlainTextEdit.is_window_split:
 			self.file_label2.setVisible(True)
+			self.filemode_label2.setVisible(True)
 			self.line_label2.setVisible(True)
 		
 		self.update_cursor_position()
@@ -301,37 +365,76 @@ class TextBox_Window(QObject):
 							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
 						""")
 		self.browser_layout.addWidget(self.file_label)
+		self.browser_layout.addWidget(self.filemode_label)
 		self.browser_layout.addWidget(self.line_label)
-			
+
+		TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width(), 0, 0, 0)
+
+		if TextBox_Window.active_window == "Textbox2":
+			self.textbox2.setFocus()
+		else:
+			self.textbox.setFocus()
+					
    	def file_save(self):
 		if TextBox_Window.active_window == "Textbox2":
 			self.save_text = self.textbox2.toPlainText()
 		else:
 			self.save_text = self.textbox.toPlainText()
+
+		#Keep the file format if not native to OS
+		if "\r\n" in open(self.file_path, "rb").read():
+			self.save_text = self.convert_line_endings(str(self.save_text), 2)
+		elif "\n" in open(self.file_path, "rb").read():
+			self.save_text = self.convert_line_endings(str(self.save_text), 0)
 		
 		#If the file has been opened, save it automatically
 		if TextBox_Window.file_opened:
-			self.file = open(TextBox_Window.main_file_path, 'w')
+			self.file = open(TextBox_Window.main_file_path, 'wb+')
 
 			#If the file has been modified, save it
 			if self.open_text != self.save_text:
-				self.file.write(self.save_text)
+				self.file.write(str(self.save_text).encode('utf-8'))
 				self.file.close()
 				self.update_bottom_label("Wrote {}".format(TextBox_Window.main_file_path))
 				self.open_text = self.save_text
 			#Writing again. Inefficient but safe.
 			elif self.open_text == self.save_text:
 				self.update_bottom_label("No changes need to be saved")
-				self.file.write(self.save_text)
+				self.file.write(str(self.save_text).encode('utf-8'))
 				self.file.close()
 				
 		#Safekeeping, *just in case* the file hasn't been opened / doesn't exist yet
 		else:
 			self.save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')
-			self.file = open(self.save_name, 'w')
-			self.file.write(self.save_text)
+			self.file = open(self.save_name, 'wb+')
+			
+			if TextBox_Window.active_window == "Textbox2":
+				if TextBox_Window.filemode_label2 == "*nix":
+					self.convert_line_endings(self.save_text, 0)
+				elif TextBox_Window.filemode_label2 == "*dos":
+					self.convert_line_endings(self.save_text, 2)
+			else:			
+				if TextBox_Window.filemode_label == "*nix":
+					self.convert_line_endings(self.save_text, 0)
+				elif TextBox_Window.filemode_label == "*dos":
+					self.convert_line_endings(self.save_text, 2)
+				
+			self.file.write(str(self.save_text).encode('utf-8'))
 			self.file.close()
 			self.update_bottom_label("Wrote {}".format(self.save_name))
+			
+	def convert_line_endings(self, temp, mode):
+		#modes:  0 - Unix, 1 - Mac, 2 - DOS
+		if mode == 0:
+			temp = string.replace(temp, '\r\n', '\n')
+			temp = string.replace(temp, '\r', '\n')
+		elif mode == 1:
+			temp = string.replace(temp, '\r\n', '\r')
+			temp = string.replace(temp, '\n', '\r')
+		elif mode == 2:
+			import re
+			temp = re.sub("\r(?!\n)|(?<!\r)\n", "\r\n", temp)
+		return temp
 			
 	#TODO(Cody): Create new file interface when button pressed.
 	def setup_new_file(self):
@@ -350,8 +453,14 @@ class TextBox_Window(QObject):
 			self.get_new_file.setStyleSheet("""
 								.QLabel { background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px; }
 							""")
-			self.browser_layout.addWidget(self.get_new_file)
-			self.browser_layout.addWidget(self.new_file_name)
+							
+			if TextBox_Window.active_window == "Textbox2":
+				self.browser_layout2.addWidget(self.get_new_file)
+				self.browser_layout2.addWidget(self.new_file_name)
+			else:
+				self.browser_layout.addWidget(self.get_new_file)
+				self.browser_layout.addWidget(self.new_file_name)
+			
 			TextBox_Window.new_file_displayed = True
 
 		self.new_file_name.setFocus()
@@ -359,9 +468,16 @@ class TextBox_Window(QObject):
 
 	def open_new_file(self):
 		self.new_file_path = os.path.join(os.getcwd(), str(self.new_file_name.text()))
+		TextBox_Window.main_file_path = self.new_file_path
+		
+		if TextBox_Window.active_window == "Textbox2":
+			TextBox_Window.file_path_2 = self.new_file_path
+		else:
+			TextBox_Window.file_path = self.new_file_path
+			
 		self.open_text = ""
 		self.file_open(self.new_file_path)
-
+			
 	#Return the file name itself, rather than the abspath
 	#Compatible with Linux + Windows (MacOS?)
 	def get_file_name(self, file_path):
@@ -439,6 +555,11 @@ class TextBox_Window(QObject):
 		TextBox_Window.search_text.setParent(None)
 		TextBox_Window.query.setParent(None)
 		TextBox_Window.search_displayed = False
+		
+		if TextBox_Window.active_window == "Textbox2":
+			TextBox_Window.textbox2.setFocus()
+		else:
+			TextBox_Window.textbox.setFocus()
 
 	def remove_new_file_box(self):
 		TextBox_Window.new_file_name.setParent(None)
@@ -559,7 +680,7 @@ class TextBox_Window(QObject):
 
 		self.file_label.setParent(None)
 		self.line_label.setParent(None)
-		
+				
 	#Open the next directory of the dir browser
 	def open_dir(self, directory):
 		TextBox_Window.dir_browser_open = True
@@ -625,6 +746,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 	def keyPressEvent(self, event):
    		k = event.key()
 		m = int(event.modifiers())
+		modifiers = QtGui.QApplication.keyboardModifiers()
 
 		if QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+X'):
 			if not DarkPlainTextEdit.is_window_split:
@@ -635,22 +757,29 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 			self.next_empty_line()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+E'):
 			self.end_of_line()
-			
+		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_E:
+			self.highlight_to_end_of_line()
+								
 		QtGui.QPlainTextEdit.keyPressEvent(self, event)
 		
 	def focusInEvent(self, event):
-		TextBox_Window.active_window = self.objectName()		
+		TextBox_Window.active_window = self.objectName()	
 		super(DarkPlainTextEdit, self).focusInEvent(event)
 
 		if TextBox_Window.active_window == "Textbox2":
 			TextBox_Window.main_file_path = TextBox_Window.file_path_2
 		else:
 			TextBox_Window.main_file_path = TextBox_Window.file_path
-			
+					
+	def resizeEvent(self, event):
+		TextBox_Window.browser_layout_widget.setFixedWidth(TextBox_Window.outer_widget_1.width() + 3)
+		TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width(), 0, 0, 0)
+					
 	#Split the window to enable editing two files
 	def split_buffer(self):
 		DarkPlainTextEdit.is_window_split = True
 		
+		self.grid_layout.addWidget(self.browser_layout_widget2, 0, 0)
 		self.container_widget = QScrollArea()
 		self.container_widget.setStyleSheet("""
 							QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
@@ -658,8 +787,8 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 							QWidget { background-color: transparent; border-left: 1px solid #0A0A0A; }
 						""")
 		
-		TextBox_Window.grid_layout.addWidget(self.container_widget, 1, 1)
-		DarkPlainTextEdit.stacked_layout2 = QtGui.QStackedLayout(self.container_widget)
+		self.splitter.addWidget(self.outer_widget_2)
+		DarkPlainTextEdit.stacked_layout2 = QtGui.QStackedLayout(self.outer_widget_2)
 		self.stacked_layout2.setMargin(0)
 		self.stacked_layout2.setSpacing(0)
 		
@@ -733,12 +862,25 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 					self.cursor.setPosition(self.block.position())
 					self.setTextCursor(self.cursor)
 				break
-				
+
+	#Move cursor to end of line
 	def end_of_line(self):
+		self.cursor = self.textCursor()
+		self.line = self.cursor.blockNumber() + 1
 		self.block = self.document_text.findBlockByLineNumber(self.line - 1)
 
-		self.cursor.setPosition(len(str(self.block.text())))
+		self.cursor.movePosition(self.cursor.EndOfLine, self.cursor.MoveAnchor, len(str(self.block.text())))
 		self.setTextCursor(self.cursor)
+		
+	#Move cursor to start of line
+	def highlight_to_end_of_line(self):
+		self.cursor = self.textCursor()
+		self.line = self.cursor.blockNumber() + 1
+		self.block = self.document_text.findBlockByLineNumber(self.line - 1)
+
+		self.cursor.movePosition(self.cursor.EndOfLine, self.cursor.KeepAnchor, len(str(self.block.text())))
+		self.setTextCursor(self.cursor)
+
 
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
@@ -751,3 +893,4 @@ class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
 			self.remove_search_box()
 		elif TextBox_Window.new_file_displayed == True:
 			self.remove_new_file_box()
+			
