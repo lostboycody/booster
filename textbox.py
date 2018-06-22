@@ -260,7 +260,7 @@ class TextBox_Window(QObject):
 		self.filemode_label2.setFont(self.font)
 		self.filemode_label2.setAlignment(QtCore.Qt.AlignRight)
 		self.filemode_label2.setStyleSheet("""
-							.QLabel { background-color: #0A0A0A; color: brown; padding-top: 4px; font-size: 14px; font-weight: 700; }
+							.QLabel { background-color: #0A0A0A; color: brown		; padding-top: 4px; font-size: 14px; font-weight: 700; }
 						""")
 
 	#Set cursor position text, update actual cursor position in document
@@ -381,11 +381,18 @@ class TextBox_Window(QObject):
 		else:
 			self.save_text = self.textbox.toPlainText()
 
-		#Keep the file format if not native to OS
-		if "\r\n" in open(self.file_path, "rb").read():
-			self.save_text = self.convert_line_endings(str(self.save_text), 2)
-		elif "\n" in open(self.file_path, "rb").read():
-			self.save_text = self.convert_line_endings(str(self.save_text), 0)
+		#Keep the file format if it exists
+		try:
+			if "\r\n" in open(self.file_path, "rb").read():
+				self.save_text = self.convert_line_endings(str(self.save_text), 2)
+			elif "\n" in open(self.file_path, "rb").read():
+				self.save_text = self.convert_line_endings(str(self.save_text), 0)
+		#Otherwise make new file depending on OS
+		except:
+			if os.name == "nt":
+				self.save_text = self.convert_line_endings(str(self.save_text), 2)
+			else:
+				self.save_text = self.convert_line_endings(str(self.save_text), 0)				
 		
 		#If the file has been opened, save it automatically
 		if TextBox_Window.file_opened:
@@ -818,7 +825,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		tab_array = []
 		string_beginning = len(str(self.block.text())) - len(str(self.block.text()).lstrip(tab))
 		for i in range(string_beginning):
-			tab_array.append(tab)
+			tab_array.append(tab)		
 		
 		tab_string = "".join(tab_array)
 		self.cursor.insertText(tab_string)
@@ -857,7 +864,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				self.block = self.block.previous()
 			else:
 				if self.block.previous().position() > 0:
-   					self.block = self.block.previous()
+   					self.block = self.block.previous()				
 					self.cursor = self.textCursor()
 					self.cursor.setPosition(self.block.position())
 					self.setTextCursor(self.cursor)
