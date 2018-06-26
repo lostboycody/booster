@@ -9,9 +9,11 @@ emacs, personalized for the dark and minimal mind.
 0.9 beta
 
 -CONTROLS-
-C-O: Open file browser.
+C-O: Open file browser. Press ESC to close.
 C-S: Save file.
 C-N: New file. You can also create a new file in the directory browser.
 C-F: Find in file. RET returns next result, if it exists.
+C-E: Move to end of line
+C-S-E: Select to end of line
 C-G: Exit top browser bar / command line.
 C-X: Split the window.
