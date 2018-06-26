@@ -26,6 +26,7 @@ class TextBox_Window(QObject):
 	file_path = ""
 	file_path_2 = ""
 	main_file_path = ""
+	editing_mode = ""
 	
 	def __init__(self, parent=None):
 		super(TextBox_Window, self).__init__(parent)
@@ -51,6 +52,8 @@ class TextBox_Window(QObject):
 		self.font = QtGui.QFont()
 		self.font.setPointSize(11)
 		self.font.setFamily("Consolas")
+		
+		TextBox_Window.editing_mode = "command"
 
 		self.create_text_box()
 		self.create_text_box2()
@@ -167,7 +170,7 @@ class TextBox_Window(QObject):
 		self.file_label.setText("_")
 		self.update_cursor_position()
 		self.textbox.setReadOnly(True)
-
+		
 	#Custom QPlainTextEdit
    	def create_text_box(self):
    		TextBox_Window.textbox = DarkPlainTextEdit(self.widget)
@@ -291,9 +294,15 @@ class TextBox_Window(QObject):
 
 		#Don't modify this file
 		if "firstfile.txt" in str(os.path.abspath(file)):
-			self.textbox.setReadOnly(True)
+			if TextBox_Window.active_window == "Textbox2"
+				self.textbox2.setReadOnly(True)
+			else:
+				self.textbox.setReadOnly(True)
 		else:
-			self.textbox.setReadOnly(False)
+			if TextBox_Window.active_window == "Textbox2"
+				self.textbox2.setReadOnly(False)
+			else:
+				self.textbox.setReadOnly(False)
 		
 		#If the file exists, open it and write to textbox
 		if os.path.isfile(file):
@@ -360,7 +369,7 @@ class TextBox_Window(QObject):
 
 		TextBox_Window.dir_browser_open = False
 		
-		#Replace bottom_label after file browser closes
+		#Replace top browser after file browser closes
 		self.main_text_label.setStyleSheet("""
 							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
 						""")
@@ -374,7 +383,7 @@ class TextBox_Window(QObject):
 			self.textbox2.setFocus()
 		else:
 			self.textbox.setFocus()
-					
+							
    	def file_save(self):
 		if TextBox_Window.active_window == "Textbox2":
 			self.save_text = self.textbox2.toPlainText()
@@ -615,8 +624,9 @@ class TextBox_Window(QObject):
 	#Custom directory browser, more efficient than dialogbox
 	def open_dir_browser(self):
 		
+		if not TextBox_Window.dir_browser_open:
+			self.temp_dir = os.getcwd()
 		TextBox_Window.dir_browser_open = True;
-		TextBox_Window.browser_buttons = 0;
 
 		#Display the browser directory and remove the bottom label
 		self.main_text_label.setStyleSheet("""
@@ -688,6 +698,28 @@ class TextBox_Window(QObject):
 		self.file_label.setParent(None)
 		self.line_label.setParent(None)
 				
+	#Without opening file
+	def close_dir_browser(self):
+		if TextBox_Window.dir_browser_open == True:
+			os.chdir(self.temp_dir)
+			self.stacked_layout.setCurrentIndex(0)
+			self.main_text_label.setStyleSheet("""
+								.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; }
+							""")
+			self.main_text_label.setText("")
+			self.browser_layout.addWidget(self.file_label)
+			self.browser_layout.addWidget(self.filemode_label)
+			self.browser_layout.addWidget(self.line_label)
+	
+			TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width(), 0, 0, 0)
+
+			if TextBox_Window.active_window == "Textbox2":
+				self.textbox2.setFocus()
+			else:
+				self.textbox.setFocus()
+				
+			TextBox_Window.dir_browser_open = False
+	
 	#Open the next directory of the dir browser
 	def open_dir(self, directory):
 		TextBox_Window.dir_browser_open = True
@@ -712,10 +744,13 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.editor = QPlainTextEdit()
 		self.setMinimumSize(10, 10)
 		self.setLineWrapMode(0)
-   		self.setStyleSheet("""
-   				.DarkPlainTextEdit { background-color: #121212; selection-color: white; selection-background-color: black; color: #378437; }
-				.QScrollBar { height: 0px; width: 0px; }
-       		""")
+		self.setStyleSheet("""
+	   				DarkPlainTextEdit { background-color: #121212; selection-color: white; selection-background-color: black; color: #378437; }
+					DarkPlainTextEdit[readOnly="True"] { color: red; }
+					.QScrollBar { height: 0px; width: 0px; }
+   	    		""")
+		self.setReadOnly(False)
+
    		self.setFrameStyle(QFrame.NoFrame)
 		self.ensureCursorVisible()
 
@@ -766,6 +801,8 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 			self.end_of_line()
 		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_E:
 			self.highlight_to_end_of_line()
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+M'):
+			self.switch_editing_mode()
 								
 		QtGui.QPlainTextEdit.keyPressEvent(self, event)
 		
@@ -887,7 +924,15 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 
 		self.cursor.movePosition(self.cursor.EndOfLine, self.cursor.KeepAnchor, len(str(self.block.text())))
 		self.setTextCursor(self.cursor)
-
+	
+	def switch_editing_mode(self):
+		if TextBox_Window.editing_mode == "command":
+			TextBox_Window.editing_mode = "insert"
+		elif TextBox_Window.editing_mode == "insert":
+			TextBox_Window.editing_mode = "command"
+			
+		self.editor.setReadOnly(True)
+			
 
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
