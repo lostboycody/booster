@@ -27,7 +27,11 @@ class TextBox_Window(QObject):
 	file_path_2 = ""
 	main_file_path = ""
 	editing_mode = ""
-	
+	nav_tooltip = "This buffer is in navigation mode."
+	ins_tooltip = "This buffer is in insert mode."
+	nix_tooltip = "This file is encoded in the UNIX EOL format."
+	dos_tooltip = "This file is encoded in the DOS (Windows) EOL format."
+		
 	def __init__(self, parent=None):
 		super(TextBox_Window, self).__init__(parent)
 
@@ -35,8 +39,6 @@ class TextBox_Window(QObject):
 		#Widget is base UI objects in PyQt4
 		self.widget = QtGui.QWidget()
 
-		self.MIN_WIDTH = 785
-		self.MIN_HEIGHT = 595
 		self.widget.setMinimumSize(100, 100)
 		self.widget.setAutoFillBackground(True)
 		MainWindow.setCentralWidget(self.widget)
@@ -52,19 +54,19 @@ class TextBox_Window(QObject):
 		self.font = QtGui.QFont()
 		self.font.setPointSize(11)
 		self.font.setFamily("Consolas")
-		
-		TextBox_Window.editing_mode = "command"
 
 		self.create_text_box()
 		self.create_text_box2()
 		
 		self.create_browser_bar()
 		self.create_browser_bar2()
+
 		self.file_label2.setHidden(not self.file_label2.isHidden())				
-		self.filemode_label2.setHidden(not self.line_label2.isHidden())
+		self.filemode_label2.setHidden(not self.filemode_label2.isHidden())
+		self.editmode_label2.setHidden(not self.editmode_label2.isHidden())
 		self.line_label2.setHidden(not self.line_label2.isHidden())
 			
-		#Setup GridLayout, for window stretching purposes
+		#Setup GridLayout, allows textbox window stretching
 		TextBox_Window.grid_layout = QtGui.QGridLayout(self.widget)
 		self.grid_layout.setMargin(0)
 		self.grid_layout.setSpacing(0)
@@ -143,19 +145,21 @@ class TextBox_Window(QObject):
 		self.browser_layout.addWidget(self.main_text_label)
 		self.browser_layout.addWidget(self.file_label)
 		self.browser_layout.addWidget(self.filemode_label)
+		self.browser_layout.addWidget(self.editmode_label)
 		self.browser_layout.addWidget(self.line_label)
 
 		self.browser_layout2.addWidget(self.main_text_label2)
 		self.browser_layout2.addWidget(self.file_label2)
 		self.browser_layout2.addWidget(self.filemode_label2)
+		self.browser_layout2.addWidget(self.editmode_label2)
 		self.browser_layout2.addWidget(self.line_label2)
 		
 		self.widget.setLayout(self.grid_layout)
 
 		TextBox_Window.search_displayed = False
 		TextBox_Window.new_file_displayed = False
-
-		self.update_bottom_label("darkscrawl 0.9 beta by lostboycody")
+		
+		self.update_bottom_label("darkscrawl 1.0 by lostboycody")
 
 		self.textbox.setCursorWidth(self.font_metrics.width(" "))
 		self.textbox2.setCursorWidth(self.font_metrics.width(" "))
@@ -178,6 +182,7 @@ class TextBox_Window(QObject):
 		#On cursor position update, update the label
 		self.textbox.cursorPositionChanged.connect(self.update_cursor_position)
 		self.textbox.setObjectName("Textbox")
+		self.textbox.setCenterOnScroll(True)
 		
 		TextBox_Window.active_window = self.textbox.objectName()
 
@@ -194,6 +199,7 @@ class TextBox_Window(QObject):
 		self.textbox2.mergeCurrentCharFormat(self.fmt)
 
 		self.textbox2.setObjectName("Textbox2")
+		self.textbox2.setCenterOnScroll(True)
 		
 	def create_browser_bar(self):
 		#Top label, used for file info, search, file browser etc.
@@ -231,6 +237,15 @@ class TextBox_Window(QObject):
 		self.filemode_label.setStyleSheet("""
 							.QLabel { background-color: #0A0A0A; color: brown; padding-top: 4px; font-size: 14px; font-weight: 700; }
 						""")
+						
+		TextBox_Window.editmode_label = QtGui.QLabel("", parent = self.main_text_label)
+		self.editmode_label.setFixedHeight(self.font_metrics.height() + 6)
+		self.editmode_label.setFixedWidth(60)
+		self.editmode_label.setFont(self.font)
+		self.editmode_label.setAlignment(QtCore.Qt.AlignRight)
+		self.editmode_label.setStyleSheet("""
+							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; font-weight: 700; }
+						""")
 
 	def create_browser_bar2(self):
 		TextBox_Window.main_text_label2 = QtGui.QLabel(self.widget)
@@ -263,7 +278,16 @@ class TextBox_Window(QObject):
 		self.filemode_label2.setFont(self.font)
 		self.filemode_label2.setAlignment(QtCore.Qt.AlignRight)
 		self.filemode_label2.setStyleSheet("""
-							.QLabel { background-color: #0A0A0A; color: brown		; padding-top: 4px; font-size: 14px; font-weight: 700; }
+							.QLabel { background-color: #0A0A0A; color: brown; padding-top: 4px; font-size: 14px; font-weight: 700; }
+						""")
+
+		TextBox_Window.editmode_label2 = QtGui.QLabel("", parent = self.main_text_label)
+		self.editmode_label2.setFixedHeight(self.font_metrics.height() + 6)
+		self.editmode_label2.setFixedWidth(60)
+		self.editmode_label2.setFont(self.font)
+		self.editmode_label2.setAlignment(QtCore.Qt.AlignRight)
+		self.editmode_label2.setStyleSheet("""
+							.QLabel { background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; font-weight: 700; }
 						""")
 
 	#Set cursor position text, update actual cursor position in document
@@ -296,13 +320,19 @@ class TextBox_Window(QObject):
 		if "firstfile.txt" in str(os.path.abspath(file)):
 			if TextBox_Window.active_window == "Textbox2":
 				self.textbox2.setReadOnly(True)
+				self.editmode_label2.setText("[nav]")
 			else:
 				self.textbox.setReadOnly(True)
+				self.editmode_label.setText("[nav]")
 		else:
 			if TextBox_Window.active_window == "Textbox2":
 				self.textbox2.setReadOnly(False)
+				self.textbox2.setStyle(self.textbox2.style())
+				self.editmode_label2.setText("[ins]")
 			else:
 				self.textbox.setReadOnly(False)
+				self.textbox.setStyle(self.textbox.style())
+				self.editmode_label.setText("[ins]")
 		
 		#If the file exists, open it and write to textbox
 		if os.path.isfile(file):
@@ -338,12 +368,15 @@ class TextBox_Window(QObject):
 		   	self.file_label2.setFixedWidth(self.font_metrics.width(self.file_name) + 20)
 			self.stacked_layout.setCurrentIndex(0)
 			self.block = self.textbox2.firstVisibleBlock()
+			self.textbox2.setFocus()
 
 			try:
 				if "\r\n" in open(self.file_path, "rb").read():
 					self.filemode_label2.setText("*dos")
+					self.filemode_label2.setToolTip(TextBox_Window.dos_tooltip)
 				elif "\n" in open(self.file_path, "rb").read():
 					self.filemode_label2.setText("*nix")
+					self.filemode_label2.setToolTip(TextBox_Window.nix_tooltip)
 			except:
 				self.filemode_label2.setText("")
 		else:
@@ -351,18 +384,22 @@ class TextBox_Window(QObject):
 		   	self.file_label.setFixedWidth(self.font_metrics.width(self.file_name) + 20)
 			self.stacked_layout.setCurrentIndex(0)
 			self.block = self.textbox.firstVisibleBlock()
+			self.textbox.setFocus()
 			
 			try:
 				if "\r\n" in open(self.file_path, "rb").read():
 					self.filemode_label.setText("*dos")
+					self.filemode_label.setToolTip(TextBox_Window.dos_tooltip)
 				elif "\n" in open(self.file_path, "rb").read():
 					self.filemode_label.setText("*nix")
+					self.filemode_label.setToolTip(TextBox_Window.nix_tooltip)
 			except:
 				self.filemode_label.setText("")
 
 		if DarkPlainTextEdit.is_window_split:
 			self.file_label2.setVisible(True)
 			self.filemode_label2.setVisible(True)
+			self.editmode_label2.setVisible(True)
 			self.line_label2.setVisible(True)
 		
 		self.update_cursor_position()
@@ -375,6 +412,7 @@ class TextBox_Window(QObject):
 						""")
 		self.browser_layout.addWidget(self.file_label)
 		self.browser_layout.addWidget(self.filemode_label)
+		self.browser_layout.addWidget(self.editmode_label)
 		self.browser_layout.addWidget(self.line_label)
 
 		TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width(), 0, 0, 0)
@@ -439,6 +477,7 @@ class TextBox_Window(QObject):
 			self.file.close()
 			self.update_bottom_label("Wrote {}".format(self.save_name))
 			
+	#Keep OS-specific EOL format. (Add option to change later?)
 	def convert_line_endings(self, temp, mode):
 		#modes:  0 - Unix, 1 - Mac, 2 - DOS
 		if mode == 0:
@@ -641,7 +680,7 @@ class TextBox_Window(QObject):
 
 		#Previous directory button
   		self.previous_dir_button = QPushButton("../")
-		self.previous_dir_button.setMinimumSize(QSize(self.widget.width() / 2, 30))
+		self.previous_dir_button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 	   	self.previous_dir_button.setStyleSheet("""
 	   	  						.QPushButton { border: none; background-color: #121212; color: #009435; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; }
 		   						.QPushButton:focus { outline: 0px; border: 2px solid #007765; }
@@ -656,7 +695,7 @@ class TextBox_Window(QObject):
 			#For each directory in directory, add button that points to new directory
 			if os.path.isdir(path):
 				self.button = QPushButton(str(f))
-				self.button.setMinimumSize(QSize(40, 30))
+				self.button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton { border: none; background-color: #121212; color: #009435; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; }
 		   							.QPushButton:focus { outline: 0px; border: 2px solid #007765; }
@@ -670,7 +709,7 @@ class TextBox_Window(QObject):
 			#For each file in directory, add button that points to that file
 			else:
 	   	   		self.button = QPushButton(str(f))
-				self.button.setMinimumSize(QSize(40, 30))
+				self.button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton { border: none; background-color: #121212; color: #AFAFAF; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; }
 		   							.QPushButton:focus { outline: 0px; border: 2px solid #007765; }
@@ -688,6 +727,7 @@ class TextBox_Window(QObject):
 		   	  						.QPushButton { border: none; background-color: #121212; color: white; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; }
 		   							.QPushButton:focus { outline: 0px; border: 2px solid #007765; }
 	   	   						""")
+		self.new_file_button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 		self.new_file_button.setAutoDefault(True)
 		self.new_file_button.pressed.connect(self.setup_new_file)
 		self.dialog_button_box.addButton(self.new_file_button, QDialogButtonBox.ActionRole)
@@ -696,6 +736,8 @@ class TextBox_Window(QObject):
 		self.dialog_button_box.setFocus()
 
 		self.file_label.setParent(None)
+		self.filemode_label.setParent(None)
+		self.editmode_label.setParent(None)
 		self.line_label.setParent(None)
 				
 	#Without opening file
@@ -746,7 +788,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.setLineWrapMode(0)
 		self.setStyleSheet("""
 	   				DarkPlainTextEdit { background-color: #121212; selection-color: white; selection-background-color: black; color: #378437; }
-					DarkPlainTextEdit[readOnly="True"] { color: red; }
+					DarkPlainTextEdit[readOnly=true] { color: #843837; }
 					.QScrollBar { height: 0px; width: 0px; }
    	    		""")
 		self.setReadOnly(False)
@@ -793,14 +835,20 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		if QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+X'):
 			if not DarkPlainTextEdit.is_window_split:
 				self.split_buffer()
-		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Up'):
-			self.previous_empty_line()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Down'):
 			self.next_empty_line()
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Up'):
+			self.previous_empty_line()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+E'):
 			self.end_of_line()
+		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_Down:
+			self.highlight_next_block()
+		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_Up:
+			self.highlight_previous_block()
 		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_E:
 			self.highlight_to_end_of_line()
+		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier:
+			self.highlight_mode = True
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+M'):
 			self.switch_editing_mode()
 								
@@ -836,19 +884,11 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.stacked_layout2.setMargin(0)
 		self.stacked_layout2.setSpacing(0)
 		
-#		if not DarkPlainTextEdit.is_window_split:
 		self.stacked_layout2.addWidget(self.textbox2)
 		self.textbox2.setPlainText("This is a second buffer.\nFor notes you don't want to save, write them here.")
 		self.textbox2.setFocus()
 		DarkPlainTextEdit.is_window_split = True
 		
-#		else:
-#			pass
-#		elif DarkPlainTextEdit.is_window_split:
-#			self.container_widget.setParent(None)
-#			self.grid_layout.removeWidget(self.container_widget)
-#			DarkPlainTextEdit.is_window_split = False
-
 	#Detect indentation of previous line and insert tabs accordingly
 	def auto_indent(self):
 		self.cursor = self.textCursor()
@@ -907,6 +947,45 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 					self.setTextCursor(self.cursor)
 				break
 
+	#Ctrl+Shift+Down scrolling highlights next block
+	def highlight_next_block(self):
+		self.cursor = self.textCursor()
+		self.line = self.cursor.blockNumber() + 1
+		self.document_text = self.document()
+		self.block = self.document_text.findBlockByLineNumber(self.line - 1)
+	
+		self.first_block = self.firstVisibleBlock()
+		
+		while self.block.isValid():
+			if re.search('[^\s*$]', self.block.text()) and self.block.next().next().text() != self.first_block.text():
+				self.block = self.block.next()
+			else:
+				if self.block.next().position() >= self.cursor.position() and self.block.next().position() != 0:
+					self.block = self.block.next()
+					self.cursor.setPosition(self.block.position(), self.cursor.KeepAnchor)
+					self.setTextCursor(self.cursor)
+ 				break
+
+	#Ctrl+Shift+Up scrolling highlights previous block
+	def highlight_previous_block(self):
+		self.cursor = self.textCursor()
+		self.line = self.cursor.blockNumber() + 1
+		self.document_text = self.document()
+		self.block = self.document_text.findBlockByLineNumber(self.line - 1)
+
+		self.first_block = self.firstVisibleBlock()
+		
+		while self.block.isValid():
+			if re.search('[^\s*$]', self.block.text()) and self.block.previous().previous().text() != "":
+				self.block = self.block.previous()
+			else:
+				if self.block.previous().position() > 0:
+   					self.block = self.block.previous()				
+					self.cursor = self.textCursor()
+					self.cursor.setPosition(self.block.position(), self.cursor.KeepAnchor)
+					self.setTextCursor(self.cursor)
+				break
+
 	#Move cursor to end of line
 	def end_of_line(self):
 		self.cursor = self.textCursor()
@@ -926,13 +1005,30 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.setTextCursor(self.cursor)
 	
 	def switch_editing_mode(self):
-		if TextBox_Window.editing_mode == "command":
-			TextBox_Window.editing_mode = "insert"
-		elif TextBox_Window.editing_mode == "insert":
-			TextBox_Window.editing_mode = "command"
-			
-		self.editor.setReadOnly(True)
-			
+		if TextBox_Window.active_window == "Textbox2":
+			if TextBox_Window.textbox2.isReadOnly():
+				self.textbox2.setReadOnly(False)
+				self.textbox2.setStyle(TextBox_Window.textbox2.style())
+				self.editmode_label2.setText("[ins]")
+				self.editmode_label2.setToolTip(TextBox_Window.ins_tooltip)
+			else:
+				self.textbox2.setReadOnly(True)
+				self.textbox2.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
+				self.textbox2.setStyle(TextBox_Window.textbox2.style())
+				self.editmode_label2.setText("[nav]")
+				self.editmode_label2.setToolTip(TextBox_Window.nav_tooltip)
+		else:
+			if TextBox_Window.textbox.isReadOnly():
+				self.textbox.setReadOnly(False)
+				self.textbox.setStyle(TextBox_Window.textbox.style())
+				self.editmode_label.setText("[ins]")
+				self.editmode_label.setToolTip(TextBox_Window.ins_tooltip)
+			else:
+				self.textbox.setReadOnly(True)
+				self.textbox.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
+				self.textbox.setStyle(TextBox_Window.textbox.style())
+				self.editmode_label.setText("[nav]")
+				self.editmode_label.setToolTip(TextBox_Window.nav_tooltip)				
 
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
