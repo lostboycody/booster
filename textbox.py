@@ -294,12 +294,12 @@ class TextBox_Window(QObject):
 
 		#Don't modify this file
 		if "firstfile.txt" in str(os.path.abspath(file)):
-			if TextBox_Window.active_window == "Textbox2"
+			if TextBox_Window.active_window == "Textbox2":
 				self.textbox2.setReadOnly(True)
 			else:
 				self.textbox.setReadOnly(True)
 		else:
-			if TextBox_Window.active_window == "Textbox2"
+			if TextBox_Window.active_window == "Textbox2":
 				self.textbox2.setReadOnly(False)
 			else:
 				self.textbox.setReadOnly(False)
