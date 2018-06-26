@@ -1,4 +1,4 @@
-import sys
+import sys 
 
 from PyQt4.QtCore import QRegExp
 from PyQt4.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
@@ -20,18 +20,80 @@ def format(color, style=''):
 
 
 # Syntax styles that can be shared by all languages
-STYLES = {
-    'keyword': format('#007765'),
-    'operator': format('#7A7A7A'),
-    'brace': format('#454545'),
-    'defclass': format('#378437'),
-    'string': format('#378437'),
-    'string2': format('#378437'),
-    'comment': format('#7A7A7A'),
-    'self': format('#007765'),
-    'numbers': format('#8A8A8A'),
-}
-
+# Theme support: temporarily sys.argv input
+try:
+	if str(sys.argv[1]) == "red":
+		STYLES = {
+			'keyword': format('#770000'),
+			'operator': format('#7A7A7A'),
+			'brace': format('#454545'),
+			'defclass': format('#843737'),
+			'string': format('#843737'),
+			'string2': format('#843737'),
+			'comment': format('#7A7A7A'),
+			'self': format('#770000'),
+			'numbers': format('#8A8A8A'),
+		}
+	elif str(sys.argv[1]) == "orange":
+		STYLES = {
+			'keyword': format('#772b00'),
+			'operator': format('#7A7A7A'),
+			'brace': format('#454545'),
+			'defclass': format('#844d37'),
+			'string': format('#844d37'),
+			'string2': format('#844d37'),
+			'comment': format('#7A7A7A'),
+			'self': format('#772b00'),
+			'numbers': format('#8A8A8A'),
+		}
+	elif str(sys.argv[1]) == "yellow":
+		STYLES = {
+			'keyword': format('#777700'),
+			'operator': format('#7A7A7A'),
+			'brace': format('#454545'),
+			'defclass': format('#848337'),
+			'string': format('#848337'),
+			'string2': format('#848337'),
+			'comment': format('#7A7A7A'),
+			'self': format('#777700'),
+			'numbers': format('#8A8A8A'),
+		}
+	elif str(sys.argv[1]) == "blue":
+		STYLES = {
+			'keyword': format('#003377'),
+			'operator': format('#7A7A7A'),
+			'brace': format('#454545'),
+			'defclass': format('#375c84'),
+			'string': format('#375c84'),
+			'string2': format('#375c84'),
+			'comment': format('#7A7A7A'),
+			'self': format('#003377'),
+			'numbers': format('#8A8A8A'),
+		}
+	elif str(sys.argv[1]) == "green":
+		STYLES = {
+		'keyword': format('#007765'),
+		'operator': format('#7A7A7A'),
+		'brace': format('#454545'),
+		'defclass': format('#378437'),
+		'string': format('#378437'),
+		'string2': format('#378437'),
+		'comment': format('#7A7A7A'),
+		'self': format('#007765'),
+		'numbers': format('#8A8A8A'),
+	}
+except:
+	STYLES = {
+		'keyword': format('#6B6B6B'),
+		'operator': format('#7A7A7A'),
+		'brace': format('#454545'),
+		'defclass': format('#8e8e8e'),
+		'string': format('#8e8e8e'),
+		'string2': format('#8e8e8e'),
+		'comment': format('#7A7A7A'),
+		'self': format('#6B6B6B'),
+		'numbers': format('#8A8A8A'),
+	}	
 
 class DarkHighlighter(QSyntaxHighlighter):
     """Syntax highlighter for the Python language.
