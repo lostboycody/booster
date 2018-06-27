@@ -7,18 +7,18 @@ This editor follows the UNIX design philosophy.
 Feel free to fork this directory and customize it to your liking!
 
 -VERSION-
-0.9 beta
+v1.0.0
 
 -CONTROLS-
-C-O: Open file browser. Press ESC to close the browser.
-C-S: Save file.
-C-N: New file. You can also create a new file in the directory browser.
-C-M: Switch editing mode. [ins] allows for file editing. [nav] sets buffer as read only.
-C-F: Find in file. RET returns next result, if it exists.
-C-E: Move to end of line
-C-S-E: Select to end of line
-C-G: Exit top browser bar / command line.
-C-X: Split the window.
+Ctrl-O: Open file browser. Press ESC to close the browser.
+Ctrl-S: Save file.
+Ctrl-N: New file. You can also create a new file in the directory browser.
+Ctrl-M: Switch editing mode. [ins] allows for file editing. [nav] sets buffer as read only.
+Ctrl-F: Find in file. RET returns next result, if it exists.
+Ctrl-E: Move to end of line
+Ctrl-Shift-E: Select to end of line
+Ctrl-G: Exit top browser bar / command line.
+Ctrl-X: Split the window.
 
 -THEME-
 To change to a basic color theme, use:
@@ -29,4 +29,4 @@ Current color options:
 red, orange, yellow, blue, green
 (Green is my favorite!)
 
-To report a bug, please email codya@protonmail.com
+To report a bug, please email codya@protonmail.com. Happy scrawling!
