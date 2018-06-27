@@ -321,18 +321,22 @@ class TextBox_Window(QObject):
 			if TextBox_Window.active_window == "Textbox2":
 				self.textbox2.setReadOnly(True)
 				self.editmode_label2.setText("[nav]")
+				self.editmode_label2.setToolTip(TextBox_Window.nav_tooltip)
 			else:
 				self.textbox.setReadOnly(True)
 				self.editmode_label.setText("[nav]")
+				self.editmode_label.setToolTip(TextBox_Window.nav_tooltip)
 		else:
 			if TextBox_Window.active_window == "Textbox2":
 				self.textbox2.setReadOnly(False)
 				self.textbox2.setStyle(self.textbox2.style())
 				self.editmode_label2.setText("[ins]")
+				self.editmode_label2.setToolTip(TextBox_Window.ins_tooltip)
 			else:
 				self.textbox.setReadOnly(False)
 				self.textbox.setStyle(self.textbox.style())
 				self.editmode_label.setText("[ins]")
+				self.editmode_label.setToolTip(TextBox_Window.ins_tooltip)
 		
 		#If the file exists, open it and write to textbox
 		if os.path.isfile(file):
