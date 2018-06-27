@@ -21,7 +21,7 @@ To run, simply execute in your favorite terminal:
 
 To use your favorte flavor of darkscrawl's homemade theme:
 
-> python darkscrawl.py <color>
+> python darkscrawl.py \<color\>
 
 Colors include:
 "green", "red", "blue", "orange", and "yellow"
