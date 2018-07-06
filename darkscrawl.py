@@ -52,8 +52,10 @@ class MainWindow(QMainWindow, TextBox_Window):
 			self.setup_new_file()
 		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Backspace:
 			self.open_previous_dir()
-		elif  k == QtCore.Qt.Key_Escape:
-			self.close_dir_browser()				
+		elif k == QtCore.Qt.Key_Escape:
+			self.close_dir_browser()
+
+
 if __name__ == '__main__':
 	#Every PyQt4 app must create an application object, sys.argv is arguments from cmd line
 	app = QtGui.QApplication(sys.argv)
