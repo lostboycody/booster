@@ -25,3 +25,13 @@ To use your favorte flavor of darkscrawl's homemade theme:
 
 Colors include:
 "green", "red", "blue", "orange", and "yellow"
+
+SCREENSHOTS!
+
+Split-window editing with green flavor
+![darkscrawl1](https://user-images.githubusercontent.com/3613279/41946583-182774a8-7968-11e8-8eaa-b62ceaf144a2.png)
+
+Intuitive in-house directory browser
+![darkscrawl2](https://user-images.githubusercontent.com/3613279/41946685-87a6b604-7968-11e8-9520-d0e1e21b7e74.png)
+
+Happy scrawling!
