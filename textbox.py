@@ -325,7 +325,6 @@ class TextBox_Window(QObject):
 
 		self.file_name = self.get_file_name(file)
 		self.file_path = os.path.join(os.getcwd(), self.file_name)
-		self.update_bottom_label("Opened {}".format(self.file_name))
 		
 		self.file_label_string = self.file_name + " -"
 
@@ -338,6 +337,7 @@ class TextBox_Window(QObject):
 			self.stacked_layout.setCurrentIndex(0)
 			self.block = self.textbox2.firstVisibleBlock()
 			self.textbox2.setFocus()
+			self.update_bottom_label("Opened {}".format(self.file_name_2))
 
 			try:
 				if "\r\n" in open(self.file_path, "rb").read():
@@ -358,6 +358,7 @@ class TextBox_Window(QObject):
 			self.stacked_layout.setCurrentIndex(0)
 			self.block = self.textbox.firstVisibleBlock()
 			self.textbox.setFocus()
+			self.update_bottom_label("Opened {}".format(self.file_name))
 			
 			try:
 				if "\r\n" in open(self.file_path, "rb").read():
@@ -427,14 +428,15 @@ class TextBox_Window(QObject):
 			if TextBox_Window.file_is_modified:
 				self.file.write(str(self.save_text).encode('utf-8'))
 				self.file.close()
-				self.update_bottom_label("Wrote {}".format(self.file_name))
 				
 				if TextBox_Window.active_window == "Textbox2":
 					self.file_modified_label2.setText("")
 					self.file_modified_label2.setFixedWidth(0)
+					self.update_bottom_label("Wrote {}".format(TextBox_Window.file_name_2))
 				else:
 					self.file_modified_label.setText("")
 					self.file_modified_label.setFixedWidth(0)
+					self.update_bottom_label("Wrote {}".format(TextBox_Window.file_name))
 									
 			#Write again to be safe.
 			else:
@@ -729,6 +731,7 @@ class TextBox_Window(QObject):
 			self.browser_layout.addWidget(self.file_modified_label)
 			self.browser_layout.addWidget(self.file_label)
 			self.browser_layout.addWidget(self.filemode_label)
+			self.browser_layout.addWidget(self.editmode_label)
 			self.browser_layout.addWidget(self.line_label)
 	
 			TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width(), 0, 0, 0)
@@ -853,7 +856,6 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 			TextBox_Window.main_file_path = TextBox_Window.file_path_2
 		else:
 			TextBox_Window.main_file_path = TextBox_Window.file_path
-			
 											
 	def resizeEvent(self, event):
 		TextBox_Window.browser_layout_widget.setFixedWidth(TextBox_Window.outer_widget_1.width() + 3)
@@ -912,7 +914,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.first_block = self.firstVisibleBlock()
 		
 		while self.block.isValid():
-			if re.search('[^\s*$]', self.block.text()) and self.block.next().next().text() != self.first_block.text():
+			if re.search('[^\s*$]', self.block.next().text()): #and self.block.next().next().text() != self.first_block.text():
 				self.block = self.block.next()
 			else:
 				if self.block.next().position() >= self.cursor.position() and self.block.next().position() != 0:
@@ -932,7 +934,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.first_block = self.firstVisibleBlock()
 		
 		while self.block.isValid():
-			if re.search('[^\s*$]', self.block.text()) and self.block.previous().previous().text() != "":
+			if re.search('[^\s*$]', self.block.previous().text()): #and self.block.previous().previous().text() != "":
 				self.block = self.block.previous()
 			else:
 				if self.block.previous().position() > 0:
@@ -952,7 +954,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.first_block = self.firstVisibleBlock()
 		
 		while self.block.isValid():
-			if re.search('[^\s*$]', self.block.text()) and self.block.next().next().text() != self.first_block.text():
+			if re.search('[^\s*$]', self.block.next().text()): #and self.block.next().next().text() != self.first_block.text():
 				self.block = self.block.next()
 			else:
 				if self.block.next().position() >= self.cursor.position() and self.block.next().position() != 0:
@@ -963,6 +965,8 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 
 	#Ctrl+Shift+Up scrolling highlights previous block
 	def highlight_previous_block(self):
+		empty_lines = 0	
+	
 		self.cursor = self.textCursor()
 		self.line = self.cursor.blockNumber() + 1
 		self.document_text = self.document()
@@ -971,12 +975,13 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.first_block = self.firstVisibleBlock()
 		
 		while self.block.isValid():
-			if re.search('[^\s*$]', self.block.text()) and self.block.previous().previous().text() != "":
+			if re.search('[^\s*$]', self.block.previous().text()): #and self.block.previous().previous().text() != "":
 				self.block = self.block.previous()
 			else:
 				if self.block.previous().position() > 0:
-   					self.block = self.block.previous()				
+   					self.block = self.block.previous()
 					self.cursor = self.textCursor()
+					#TODO
 					self.cursor.setPosition(self.block.position(), self.cursor.KeepAnchor)
 					self.setTextCursor(self.cursor)
 				break
