@@ -11,7 +11,7 @@ import ntpath
 import platform
 import syntax
 from textbox import TextBox_Window
-from threading import Thread
+from threading import Thread 
 from PyQt4 import QtCore
 from PyQt4.QtCore import *
 from PyQt4 import QtGui
@@ -50,8 +50,9 @@ class MainWindow(QMainWindow, TextBox_Window):
 				self.remove_new_file_box()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+N'):
 			self.setup_new_file()
-		elif TextBox_Window.dir_browser_open == True and k == QtCore.Qt.Key_Backspace:
-			self.open_previous_dir()
+#		elif TextBox_Window.dir_browser_open == True and k:
+#			self.open_previous_dir()
+			
 		elif k == QtCore.Qt.Key_Escape:
 			self.close_dir_browser()
 
