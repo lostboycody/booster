@@ -10,11 +10,15 @@ Feel free to fork this directory and customize it to your liking!
 v1.0.0
 
 -CONTROLS-
-Ctrl-O: Open file browser. Press ESC to close the browser.
+Ctrl-O: Open file browser.
+		Type to search for file in the current directory.
+		Press RET to select the desired file, or use arrow keys/mouse to select.
+		ESC closes the browser.
 Ctrl-S: Save file.
 Ctrl-N: New file. You can also create a new file in the directory browser.
-Ctrl-M: Switch editing mode. [ins] allows for file editing. [nav] sets buffer as read only.
+Ctrl-M: Switch editing mode. ins allows for file editing. nav sets buffer as read only.
 Ctrl-F: Find in file. RET returns next result, if it exists.
+Ctrl-Z: Undo last insert
 Ctrl-E: Move to end of line
 Ctrl-Shift-E: Select to end of line
 Ctrl-G: Exit top browser bar / command line.
