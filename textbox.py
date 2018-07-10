@@ -8,6 +8,7 @@ import platform
 import syntax
 from threading import Thread
 from PyQt4 import QtCore
+from PyQt4 import QtTest
 from PyQt4.QtCore import *
 from PyQt4 import QtGui
 from PyQt4.QtGui import *
@@ -150,7 +151,11 @@ class TextBox_Window(QObject):
 		self.browser_layout.addWidget(self.filemode_label)
 		self.browser_layout.addWidget(self.editmode_label)
 		self.browser_layout.addWidget(self.line_label)
+		
+		#Search widget for dir browser
+		self.dir_browser_search = SearchLineEdit()
 
+		#Setup HBoxLayout for second window
 		self.browser_layout2.addWidget(self.main_text_label2)
 		self.browser_layout2.addWidget(self.file_modified_label2)
 		self.browser_layout2.addWidget(self.file_label2)
@@ -380,6 +385,7 @@ class TextBox_Window(QObject):
 			self.line_label2.setVisible(True)
 					
 		self.update_cursor_position()
+		self.dir_browser_search.setParent(None)
 
 		TextBox_Window.dir_browser_open = False
 		TextBox_Window.file_is_modified = False
@@ -645,18 +651,18 @@ class TextBox_Window(QObject):
 		if not TextBox_Window.dir_browser_open:
 			self.temp_dir = os.getcwd()
 		TextBox_Window.dir_browser_open = True;
+		self.dir_browser_search.setText("")
 
 		#Display the browser directory and remove the bottom label
 		self.main_text_label.setStyleSheet("""
-							BrowserBarLabel { background-color: #AFAFAF; color: black; padding-top: 4px; font-size: 14px; font-weight: bold; text-align: left; }
+							BrowserBarLabel { background-color: #AFAFAF; color: black; padding-top: 4px; font-size: 14px; font-weight: bold; text-align: left; padding-right: 0px; }
 						""")
-		self.file_label.setParent(None)
-		self.line_label.setParent(None)
 
 	   	self.current_dir = os.chdir(os.getcwd())
 		self.dialog_button_box.clear()
-	   	self.main_text_label.setText(str(os.getcwd()))
-
+		self.dir_label = str(os.getcwd()) + "\\"
+	   	self.main_text_label.setText(self.dir_label)
+	
 		#Previous directory button
   		self.previous_dir_button = QPushButton("../")
 		self.previous_dir_button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
@@ -674,6 +680,7 @@ class TextBox_Window(QObject):
 			#For each directory in directory, add button that points to new directory
 			if os.path.isdir(path):
 				self.button = QPushButton(str(f))
+				self.button.setObjectName(str(f))
 				self.button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton { border: none; background-color: #121212; color: #009435; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; font-weight: bold; }
@@ -688,6 +695,7 @@ class TextBox_Window(QObject):
 			#For each file in directory, add button that points to that file
 			else:
 	   	   		self.button = QPushButton(str(f))
+				self.button.setObjectName(str(f))
 				self.button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 	   	   		self.button.setStyleSheet("""
 	   	   							.QPushButton { border: none; background-color: #121212; color: #AFAFAF; text-align: left; padding: 5px; font-family: Consolas; font-size: 14px; font-weight: bold; }
@@ -719,7 +727,14 @@ class TextBox_Window(QObject):
 		self.filemode_label.setParent(None)
 		self.editmode_label.setParent(None)
 		self.line_label.setParent(None)
-				
+		
+		self.browser_layout.addWidget(self.dir_browser_search)
+		self.dir_browser_search.setFixedHeight(self.font_metrics.height() + 6)
+		self.dir_browser_search.setFont(TextBox_Window.font)
+		self.dir_browser_search.textChanged.connect(self.update_dir_browser)
+		self.dir_browser_search.returnPressed.connect(self.dialog_button_box.setFocus)
+		self.dir_browser_search.setFocus()
+		
 	#Without opening file
 	def close_dir_browser(self):
 		if TextBox_Window.dir_browser_open == True:
@@ -740,7 +755,10 @@ class TextBox_Window(QObject):
 				self.textbox2.setFocus()
 			else:
 				self.textbox.setFocus()
-				
+			
+			self.main_text_label.setText("")
+			self.dir_browser_search.setText("")
+			self.dir_browser_search.setParent(None)
 			TextBox_Window.dir_browser_open = False
 	
 	#Open the next directory of the dir browser
@@ -757,6 +775,18 @@ class TextBox_Window(QObject):
 		self.dialog_button_box.clear()
 		self.open_dir_browser()
 		
+	#TODO(cody): Make this more efficient!
+	def update_dir_browser(self):
+		button_count = 0
+		for widget in self.dialog_button_box.children():
+			if isinstance(widget, QPushButton):
+				if re.search(str(self.dir_browser_search.text()), widget.objectName(), re.IGNORECASE):
+					self.dialog_button_box.addButton(widget, QDialogButtonBox.ActionRole)
+					button_count += 1
+				else:
+					self.dialog_button_box.removeButton(widget)
+					widget.setParent(self.dialog_button_box)
+													
 	def update_file_modified(self):
 		TextBox_Window.file_is_modified = True
 
@@ -815,8 +845,8 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 	def keyReleaseEvent(self, event):
 		k = event.key()
 
-		if k == QtCore.Qt.Key_Return:
-			self.auto_indent()
+#		if k == QtCore.Qt.Key_Return:
+#			self.auto_indent()
 			
 		QtGui.QPlainTextEdit.keyReleaseEvent(self, event)
 
@@ -846,6 +876,9 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+M'):
 			self.switch_editing_mode()
 			
+		if k == QtCore.Qt.Key_Return:
+			QtCore.QTimer.singleShot(10, self.auto_indent)
+			
 		QtGui.QPlainTextEdit.keyPressEvent(self, event)
 		
 	def focusInEvent(self, event):
@@ -874,7 +907,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 						""")
 		self.line_label.setStyleSheet("""
 							 background-color: #0A0A0A; color: #BFBFBF; padding-top: 4px; font-size: 14px; border-right: 2px solid #121212; font-weight: bold;
-						""")						
+						""")
 		
 		self.splitter.addWidget(self.outer_widget_2)
 		DarkPlainTextEdit.stacked_layout2 = QtGui.QStackedLayout(self.outer_widget_2)
@@ -888,11 +921,11 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		
 	#Detect indentation of previous line and insert tabs accordingly
 	def auto_indent(self):
+		self.document_text = self.document()
 		self.cursor = self.textCursor()
 		self.line = self.cursor.blockNumber() + 1
 		self.col = self.cursor.columnNumber()
 		
-		self.document_text = self.document()
 		self.block = self.document_text.findBlockByLineNumber(self.line - 2)
 
 		tab = "\t"
@@ -981,7 +1014,6 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				if self.block.previous().position() > 0:
    					self.block = self.block.previous()
 					self.cursor = self.textCursor()
-					#TODO
 					self.cursor.setPosition(self.block.position(), self.cursor.KeepAnchor)
 					self.setTextCursor(self.cursor)
 				break
