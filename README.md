@@ -29,9 +29,9 @@ Colors include:
 SCREENSHOTS!
 
 Split-window editing with green flavor
-![darkscrawl1](https://user-images.githubusercontent.com/3613279/41946583-182774a8-7968-11e8-8eaa-b62ceaf144a2.png)
+![darkscrawl1-new](screenshots/darkscrawl1-new.png)
 
 Intuitive in-house directory browser
-![darkscrawl2](https://user-images.githubusercontent.com/3613279/41946685-87a6b604-7968-11e8-9520-d0e1e21b7e74.png)
+![darkscrawl2-new](screenshots/darkscrawl2-new.png)
 
 Happy scrawling!
