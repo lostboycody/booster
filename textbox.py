@@ -32,7 +32,7 @@ class TextBox_Window(QObject):
 	nav_tooltip = "This buffer is in navigation mode."
 	ins_tooltip = "This buffer is in insert mode."
 	nix_tooltip = "This file is encoded in the UNIX EOL format."
-	dos_tooltip = "This file is encoded in the DOS (Windows) EOL format."
+	dos_tooltip = "This file is encoded in the DOS (Windows) EOL format."	
 		
 	def __init__(self, parent=None):
 		super(TextBox_Window, self).__init__(parent)
@@ -777,16 +777,16 @@ class TextBox_Window(QObject):
 		
 	#TODO(cody): Make this more efficient!
 	def update_dir_browser(self):
-		button_count = 0
 		for widget in self.dialog_button_box.children():
 			if isinstance(widget, QPushButton):
-				if re.search(str(self.dir_browser_search.text()), widget.objectName(), re.IGNORECASE):
-					self.dialog_button_box.addButton(widget, QDialogButtonBox.ActionRole)
-					button_count += 1
-				else:
+				if not re.search(str(self.dir_browser_search.text()), widget.objectName(), re.IGNORECASE):
 					self.dialog_button_box.removeButton(widget)
 					widget.setParent(self.dialog_button_box)
-													
+				elif re.search(str(self.dir_browser_search.text()), widget.objectName(), re.IGNORECASE):
+					self.dialog_button_box.addButton(widget, QDialogButtonBox.ActionRole)
+				else:
+					pass
+															
 	def update_file_modified(self):
 		TextBox_Window.file_is_modified = True
 
