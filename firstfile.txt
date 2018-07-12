@@ -1,4 +1,4 @@
-								Welcome to Darkscrawl
+Welcome to Darkscrawl
 										by
 								    Cody Azevedo
 
@@ -18,11 +18,12 @@ Ctrl-S: Save file.
 Ctrl-N: New file. You can also create a new file in the directory browser.
 Ctrl-M: Switch editing mode. ins allows for file editing. nav sets buffer as read only.
 Ctrl-F: Find in file. RET returns next result, if it exists.
-Ctrl-Z: Undo last insert
-Ctrl-E: Move to end of line
-Ctrl-Shift-E: Select to end of line
-Ctrl-G: Exit top browser bar / command line.
+Ctrl-Z: Undo last insert.
+Ctrl-E: Move to end of the line.
+Ctrl-Shift-E: Select to end of the line.
+Ctrl-G: Exit top browser bar.
 Ctrl-X: Split the window.
+Ctrl-Q: Switch window focus.
 
 -THEME-
 To change to a basic color theme, use:
@@ -30,7 +31,7 @@ To change to a basic color theme, use:
 	> python darkscrawl.py <color>
 
 Current color options:
-red, orange, yellow, blue, green
+red, orange, yellow, blue, green, strangerthings, flosv8cafe (don't ask)
 (Green is my favorite!)
 
 To report a bug, please email codya@protonmail.com. Happy scrawling!
