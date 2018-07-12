@@ -27,23 +27,23 @@ try:
 			'keyword': format('#770000'),
 			'operator': format('#7A7A7A'),
 			'brace': format('#454545'),
-			'defclass': format('#843737'),
-			'string': format('#843737'),
-			'string2': format('#843737'),
+			'defclass': format('#c5a18b'),
+			'string': format('#c5a18b'),
+			'string2': format('#c5a18b'),
 			'comment': format('#7A7A7A'),
 			'self': format('#770000'),
 			'numbers': format('#8A8A8A'),
 		}
 	elif str(sys.argv[1]) == "orange":
 		STYLES = {
-			'keyword': format('#772b00'),
+			'keyword': format('#8F471E'),
 			'operator': format('#7A7A7A'),
 			'brace': format('#454545'),
-			'defclass': format('#9e5b40'),
-			'string': format('#9e5b40'),
-			'string2': format('#9e5b40'),
+			'defclass': format('#e87330'),
+			'string': format('#e87330'),
+			'string2': format('#e87330'),
 			'comment': format('#7A7A7A'),
-			'self': format('#772b00'),
+			'self': format('#8F471E'),
 			'numbers': format('#8A8A8A'),
 		}
 	elif str(sys.argv[1]) == "yellow":
@@ -80,6 +80,42 @@ try:
 		'string2': format('#378437'),
 		'comment': format('#7A7A7A'),
 		'self': format('#007765'),
+		'numbers': format('#8A8A8A'),
+	}
+	elif str(sys.argv[1]) == "flosv8cafe":
+		STYLES = {
+		'keyword': format('#0D8580'),
+		'operator': format('#7A7A7A'),
+		'brace': format('#454545'),
+		'defclass': format('#EF7196'),
+		'string': format('#EF7196'),
+		'string2': format('#EF7196'),
+		'comment': format('#7A7A7A'),
+		'self': format('#0D8580'),
+		'numbers': format('#8A8A8A'),
+	}
+	elif str(sys.argv[1]) == "strangerthings":
+		STYLES = {
+		'keyword': format('#222F57'),
+		'operator': format('#7A7A7A'),
+		'brace': format('#454545'),
+		'defclass': format('#BF1515'),
+		'string': format('#BF1515'),
+		'string2': format('#BF1515'),
+		'comment': format('#7A7A7A'),
+		'self': format('#222F57'),
+		'numbers': format('#8A8A8A'),
+	}
+	elif str(sys.argv[1]) == "royal":
+		STYLES = {
+		'keyword': format('#00626a'),
+		'operator': format('#7A7A7A'),
+		'brace': format('#454545'),
+		'defclass': format('#e8b290'),
+		'string': format('#e8b290'),
+		'string2': format('#e8b290'),
+		'comment': format('#7A7A7A'),
+		'self': format('#00626a'),
 		'numbers': format('#8A8A8A'),
 	}
 except:
@@ -161,6 +197,8 @@ class DarkHighlighter(QSyntaxHighlighter):
 
             # From '#' until a newline
             (r'#[^\n]*', 0, STYLES['comment']),
+			# From '//' until a newline
+            (r'//[^\n]*', 0, STYLES['comment']),
 
             # Numeric literals
             (r'\b[+-]?[0-9]+[lL]?\b', 0, STYLES['numbers']),
