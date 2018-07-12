@@ -331,20 +331,37 @@ class TextBox_Window(QObject):
 				self.textbox.textChanged.connect(self.update_file_modified)
 				
 		#If the file doesn't exist, create new file and write blank text to textbox
-		if not os.path.isfile(file):
-			self.open_text = ""
-			if TextBox_Window.active_window == "Textbox2":
-				self.textbox2.setPlainText(self.open_text)
-			else:
-				self.textbox.setPlainText(self.open_text)
+		elif not os.path.isfile(file):
+			self.new_file = self.new_file_name.text()
+			file = open(self.new_file, 'ab')
+
+			TextBox_Window.open_text = ""
 			self.file_length = len(self.open_text)
+				
+			if TextBox_Window.active_window == "Textbox2":
+				TextBox_Window.file_path_2 = str(os.path.join(os.getcwd(), str(self.new_file)))
+				TextBox_Window.file_name_2 = self.new_file
 
-		self.file_name = self.get_file_name(file)
-		self.file_path = os.path.join(os.getcwd(), self.file_name)
+				self.document = self.textbox2.document()
+				self.textbox2.setPlainText(self.open_text)
+				self.file_label2.setFixedWidth(self.font_metrics.width(self.file_label2.text()) + 5)
+				self.line_label2.setFixedWidth(self.font_metrics.width(self.line_label2.text()) + 10)
+				self.filemode_label2.setFixedWidth(self.font_metrics.width(self.filemode_label2.text()) + 10)
+				self.editmode_label2.setFixedWidth(self.font_metrics.width(self.editmode_label2.text()) + 10)
+				self.textbox2.textChanged.connect(self.update_file_modified)
+			else:
+				TextBox_Window.file_path = str(os.path.join(os.getcwd(), str(self.new_file)))
+				TextBox_Window.file_name = self.new_file
+								
+				self.textbox.setPlainText(self.open_text)
+				self.file_label.setFixedWidth(self.font_metrics.width(self.file_label.text()) + 5)
+				self.line_label.setFixedWidth(self.font_metrics.width(self.line_label.text()) + 10)
+				self.filemode_label.setFixedWidth(self.font_metrics.width(self.filemode_label.text()) + 10)
+				self.editmode_label.setFixedWidth(self.font_metrics.width(self.editmode_label.text()) + 10)
+				self.textbox.textChanged.connect(self.update_file_modified)
 		
-		self.file_label_string = self.file_name
-
 		if TextBox_Window.active_window == "Textbox2":
+			self.file_label_string = self.file_name_2
 			self.main_text_label.setText("")
 			self.file_modified_label2.setText("")
 			self.file_modified_label2.setFixedWidth(0)
@@ -365,6 +382,7 @@ class TextBox_Window(QObject):
 			except:
 				self.filemode_label2.setText("")
 		else:
+			self.file_label_string = self.file_name
 			self.file_modified_label.setText("")
 			self.file_modified_label.setFixedWidth(0)
 			self.file_label.setText(self.file_label_string)
@@ -424,7 +442,7 @@ class TextBox_Window(QObject):
 				if isinstance(widget, BrowserBarLabel) or isinstance(widget, QLabel):
 					widget.setProperty("is_active", True)
 					widget.setStyle(widget.style())
-							
+
    	def file_save(self):
 		if TextBox_Window.active_window == "Textbox2":
 			self.save_text = self.textbox2.toPlainText()
@@ -523,20 +541,10 @@ class TextBox_Window(QObject):
 			
 			TextBox_Window.new_file_displayed = True
 
-		self.new_file_name.setFocus()
-		self.new_file_name.returnPressed.connect(self.open_new_file)
-
-	def open_new_file(self):
 		self.new_file_path = os.path.join(os.getcwd(), str(self.new_file_name.text()))
-		TextBox_Window.main_file_path = self.new_file_path
-		
-		if TextBox_Window.active_window == "Textbox2":
-			TextBox_Window.file_path_2 = self.new_file_path
-		else:
-			TextBox_Window.file_path = self.new_file_path
-			
-		self.open_text = ""
-		self.file_open(self.new_file_path)
+
+		self.new_file_name.setFocus()
+		self.new_file_name.returnPressed.connect(partial(self.file_open, self.new_file_path))
 			
 	#Return the file name itself, rather than the abspath
 	#Compatible with Linux + Windows (MacOS?)
@@ -879,6 +887,11 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 			self.highlight_mode = True
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+M'):
 			self.switch_editing_mode()
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Q'):
+			if not self.textbox.hasFocus():
+				self.textbox.setFocus()
+			else:
+				self.textbox2.setFocus()
 			
 		if k == QtCore.Qt.Key_Return:
 			QtCore.QTimer.singleShot(10, self.auto_indent)
@@ -1116,7 +1129,8 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				self.textbox.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
 				self.textbox.setStyle(TextBox_Window.textbox.style())
 				self.editmode_label.setText("nav")
-				self.editmode_label.setToolTip(TextBox_Window.nav_tooltip)			
+				self.editmode_label.setToolTip(TextBox_Window.nav_tooltip)
+				
 
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
