@@ -27,9 +27,9 @@ try:
 			'keyword': format('#770000'),
 			'operator': format('#7A7A7A'),
 			'brace': format('#454545'),
-			'defclass': format('#c5a18b'),
-			'string': format('#c5a18b'),
-			'string2': format('#c5a18b'),
+			'defclass': format('#9C4343'),
+			'string': format('#9C4343'),
+			'string2': format('#9C4343'),
 			'comment': format('#7A7A7A'),
 			'self': format('#770000'),
 			'numbers': format('#8A8A8A'),
@@ -116,6 +116,18 @@ try:
 		'string2': format('#e8b290'),
 		'comment': format('#7A7A7A'),
 		'self': format('#00626a'),
+		'numbers': format('#8A8A8A'),
+	}
+	elif str(sys.argv[1]) == "scoopsahoy":
+		STYLES = {
+		'keyword': format('#473B5F'),
+		'operator': format('#D2A89C'),
+		'brace': format('#454545'),
+		'defclass': format('#943B41'),
+		'string': format('#943B41'),
+		'string2': format('#943B41'),
+		'comment': format('#D2A89C'),
+		'self': format('#473B5F'),
 		'numbers': format('#8A8A8A'),
 	}
 except:
