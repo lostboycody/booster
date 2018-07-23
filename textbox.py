@@ -1,3 +1,8 @@
+
+#WORKNAME: darkscrawl
+#This file handles the behaviour of the text editor.
+#2018 Cody Azevedo
+
 import sys
 import os
 import threading
@@ -8,15 +13,13 @@ import platform
 import syntax
 from threading import Thread
 from PyQt4 import QtCore
-from PyQt4 import QtTest
 from PyQt4.QtCore import *
 from PyQt4 import QtGui
 from PyQt4.QtGui import *
 from functools import partial
 
-
-class TextBox_Window(QObject):
-
+	
+class TextBox_Window(QObject):	
 	title_visible = True
 	file_opened = False
 	dir_browser_open = False
@@ -28,60 +31,60 @@ class TextBox_Window(QObject):
 	file_path = ""
 	file_path_2 = ""
 	main_file_path = ""
-	editing_mode = ""
+	nav_mode = False 
+	nav_mode_2 = False 
 	nav_tooltip = "This buffer is in navigation mode."
 	ins_tooltip = "This buffer is in insert mode."
 	nix_tooltip = "This file is encoded in the UNIX EOL format."
 	dos_tooltip = "This file is encoded in the DOS (Windows) EOL format."	
-		
+			
 	def __init__(self, parent=None):
 		super(TextBox_Window, self).__init__(parent)
-
+	
 	def create_widget(self, MainWindow):
 		#Widget is base UI objects in PyQt4
 		self.widget = QtGui.QWidget()
-
+	
 		self.widget.setMinimumSize(100, 100)
 		self.widget.setAutoFillBackground(True)
 		MainWindow.setCentralWidget(self.widget)
 		MainWindow.setWindowTitle("darkscrawl")
-
+	
 		#Set widget background color to dark gray for debug purposes
 		palette = self.widget.palette()
 		role = self.widget.backgroundRole()
 		palette.setColor(role, QColor("#121212"))
 		palette.setColor(QPalette.HighlightedText, QColor("red"))
 		self.widget.setPalette(palette)
-								
+									
 		TextBox_Window.font = QtGui.QFont()
 		TextBox_Window.font.setPointSize(11)
 		TextBox_Window.font.setFamily("Consolas")
-
+	
 		self.create_text_box()
 		self.create_text_box2()
-		
+			
 		self.create_browser_bar()
 		self.create_browser_bar2()
-		
+			
 		self.file_modified_label2.setHidden(not self.file_modified_label2.isHidden())				
 		self.file_label2.setHidden(not self.file_label2.isHidden())	
 		self.filemode_label2.setHidden(not self.filemode_label2.isHidden())
 		self.editmode_label2.setHidden(not self.editmode_label2.isHidden())
 		self.line_label2.setHidden(not self.line_label2.isHidden())
-
+	
 		self.file_modified_label.setFixedWidth(0)				
 		self.file_label.setFixedWidth(0)
 		self.filemode_label.setFixedWidth(0)
 		self.editmode_label.setFixedWidth(0)
-		self.line_label.setFixedWidth(0)
-
-			
+		self.line_label.setFixedWidth(0)	
+				
 		#Setup GridLayout, allows textbox window stretching
 		TextBox_Window.grid_layout = QtGui.QGridLayout(self.widget)
 		self.grid_layout.setMargin(0)
 		self.grid_layout.setSpacing(0)
 		self.grid_layout.setColumnStretch(0, 2)
-
+	
 		#Outer container widgets for each window
 		TextBox_Window.outer_widget_1 = QScrollArea(self.widget)
 		self.outer_widget_1.setStyleSheet("""
@@ -95,7 +98,7 @@ class TextBox_Window(QObject):
 							QScrollArea { background-color: transparent; border: 0px solid black; }
 							QWidget { background-color: transparent; border-left: 1px solid #0c0c0c; }
 						""")
-		
+			
 		#Splitter, for dragging margin between split windows
 		TextBox_Window.splitter = QSplitter(self.widget)
 		self.splitter.setHandleWidth(1)
@@ -160,7 +163,7 @@ class TextBox_Window(QObject):
 		self.browser_layout.addWidget(self.line_label)
 		
 		#Search widget for dir browser
-		self.dir_browser_search = SearchLineEdit()
+		TextBox_Window.dir_browser_search = SearchLineEdit()
 
 		#Setup HBoxLayout for second window
 		self.browser_layout2.addWidget(self.main_text_label2)
@@ -180,7 +183,6 @@ class TextBox_Window(QObject):
 		self.textbox.setCursorWidth(self.font_metrics.width(" "))
 		self.textbox2.setCursorWidth(self.font_metrics.width(" "))
 
-
 		#Open the intro file, as read only
 		self.file = open("firstfile.txt", 'rb')
 		with self.file:
@@ -198,13 +200,13 @@ class TextBox_Window(QObject):
 		#On cursor position update, update the label
 		self.textbox.cursorPositionChanged.connect(self.update_cursor_position)
 		self.textbox.setObjectName("Textbox")
-		self.textbox.setCenterOnScroll(True)
+		self.textbox.setCenterOnScroll(False)
 				
 		TextBox_Window.active_window = self.textbox.objectName()
 
 	#New instance for split buffer capabilities
    	def create_text_box2(self):
-   		TextBox_Window.textbox2 = DarkPlainTextEdit(self.widget)
+		TextBox_Window.textbox2 = DarkPlainTextEdit(self.widget)
 		
 		self.textbox2.cursorPositionChanged.connect(self.update_cursor_position)
 		self.last_match = None
@@ -215,7 +217,7 @@ class TextBox_Window(QObject):
 		self.textbox2.mergeCurrentCharFormat(self.fmt)
 
 		self.textbox2.setObjectName("Textbox2")
-		self.textbox2.setCenterOnScroll(True)
+		self.textbox2.setCenterOnScroll(False)
 		
 	def create_browser_bar(self):
 		#Top label, used for file info, search, file browser etc.
@@ -337,7 +339,7 @@ class TextBox_Window(QObject):
 
 			TextBox_Window.open_text = ""
 			self.file_length = len(self.open_text)
-				
+
 			if TextBox_Window.active_window == "Textbox2":
 				TextBox_Window.file_path_2 = str(os.path.join(os.getcwd(), str(self.new_file)))
 				TextBox_Window.file_name_2 = self.new_file
@@ -361,46 +363,44 @@ class TextBox_Window(QObject):
 				self.textbox.textChanged.connect(self.update_file_modified)
 		
 		if TextBox_Window.active_window == "Textbox2":
-			self.file_label_string = self.file_name_2
 			self.main_text_label.setText("")
 			self.file_modified_label2.setText("")
 			self.file_modified_label2.setFixedWidth(0)
-			self.file_label2.setText(self.file_label_string)
-		   	self.file_label2.setFixedWidth(self.font_metrics.width(self.file_name) + 10)
+			self.file_label2.setText(self.file_name_2)
+		   	self.file_label2.setFixedWidth(self.font_metrics.width(self.file_name_2) + 10)
 			self.block = self.textbox2.firstVisibleBlock()
 			self.update_bottom_label("Opened {}".format(self.file_name_2))
 
 			try:
-				if "\r\n" in open(self.file_path, "rb").read():
+				if "\r\n" in open(file, "rb").read():
 					self.filemode_label2.setText("dos")
 					self.filemode_label2.setFixedWidth(self.font_metrics.width(self.filemode_label2.text()) + 10)
 					self.filemode_label2.setToolTip(TextBox_Window.dos_tooltip)
-				elif "\n" in open(self.file_path, "rb").read():
+				elif "\n" in open(file, "rb").read():
 					self.filemode_label2.setText("nix")
 					self.filemode_label2.setToolTip(TextBox_Window.nix_tooltip)
 					self.filemode_label2.setFixedWidth(self.font_metrics.width(self.filemode_label2.text()) + 10)
 			except:
-				self.filemode_label2.setText("")
+				self.filemode_label2.setText("   ")
 		else:
-			self.file_label_string = self.file_name
 			self.file_modified_label.setText("")
 			self.file_modified_label.setFixedWidth(0)
-			self.file_label.setText(self.file_label_string)
+			self.file_label.setText(self.file_name)
 		   	self.file_label.setFixedWidth(self.font_metrics.width(self.file_name) + 10)
 			self.block = self.textbox.firstVisibleBlock()
 			self.update_bottom_label("Opened {}".format(self.file_name))
 			
 			try:
-				if "\r\n" in open(self.file_path, "rb").read():
+				if "\r\n" in open(file, "rb").read():
 					self.filemode_label.setText("dos")
 					self.filemode_label.setToolTip(TextBox_Window.dos_tooltip)
 					self.filemode_label.setFixedWidth(self.font_metrics.width(self.filemode_label.text()) + 10)
-				elif "\n" in open(self.file_path, "rb").read():
+				elif "\n" in open(file, "rb").read():
 					self.filemode_label.setText("nix")
 					self.filemode_label.setToolTip(TextBox_Window.nix_tooltip)
 					self.filemode_label.setFixedWidth(self.font_metrics.width(self.filemode_label.text()) + 10)
 			except:
-				self.filemode_label.setText("")
+				self.filemode_label.setText("   ")
 
 		if DarkPlainTextEdit.is_window_split:
 			self.file_modified_label2.setVisible(True)
@@ -455,9 +455,12 @@ class TextBox_Window(QObject):
 				self.save_text = self.convert_line_endings(str(self.save_text), 2)
 			elif "\n" in open(self.file_path, "rb").read():
 				self.save_text = self.convert_line_endings(str(self.save_text), 0)
+			else:
+				self.save_text = self.convert_line_endings(str(self.save_text), 0)
+				
 		#Otherwise make new file depending on OS
 		except:
-			if os.name == "nt":
+			if platform.system() == "Windows":
 				self.save_text = self.convert_line_endings(str(self.save_text), 2)
 			else:
 				self.save_text = self.convert_line_endings(str(self.save_text), 0)
@@ -494,7 +497,6 @@ class TextBox_Window(QObject):
 					self.file_modified_label.setFixedWidth(0)
 
 			TextBox_Window.file_is_modified = False
-
 				
 		#Safekeeping, *just in case* the file hasn't been opened / doesn't exist yet
 		else:
@@ -518,6 +520,7 @@ class TextBox_Window(QObject):
 	def setup_new_file(self):
 		if TextBox_Window.new_file_displayed == False:
 			self.remove_bottom_label()
+			self.dir_browser_search.setParent(None)		
 
 			TextBox_Window.new_file_name = SearchLineEdit("")
 			self.new_file_name.setFixedHeight(self.font_metrics.height() + 6)
@@ -532,7 +535,7 @@ class TextBox_Window(QObject):
 								.QLabel { background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px; font-weight: 700; }
 							""")
 							
-			if TextBox_Window.active_window == "Textbox2":
+			if TextBox_Window.active_window == "Textbox2" and DarkPlainTextEdit.is_window_split:
 				self.browser_layout2.addWidget(self.get_new_file)
 				self.browser_layout2.addWidget(self.new_file_name)
 			else:
@@ -610,11 +613,10 @@ class TextBox_Window(QObject):
 				self.browser_layout.addWidget(self.query)
 		
 		TextBox_Window.search_displayed = True
-
+	
 		self.query.setFocus()
-#		self.query.textChanged.connect(self.search_in_file)
 		self.query.returnPressed.connect(self.search_in_file)
-
+	
 	def remove_search_box(self):
 		TextBox_Window.search_text.setParent(None)
 		TextBox_Window.query.setParent(None)
@@ -628,19 +630,26 @@ class TextBox_Window(QObject):
 	def remove_new_file_box(self):
 		TextBox_Window.new_file_name.setParent(None)
 		TextBox_Window.get_new_file.setParent(None)
+		if TextBox_Window.dir_browser_open:
+			self.browser_layout.addWidget(self.dir_browser_search)
+			self.dir_browser_search.setFocus()
+		if TextBox_Window.active_window == "Textbox2" and not TextBox_Window.dir_browser_open:
+			self.textbox2.setFocus()
+		elif TextBox_Window.active_window == "Textbox" and not TextBox_Window.dir_browser_open:
+			self.textbox.setFocus()
 		TextBox_Window.new_file_displayed = False
-
+	
 	def search_in_file(self):
 		if TextBox_Window.active_window == "Textbox2":
 			self.text = self.textbox2.toPlainText()
 		else:
 			self.text = self.textbox.toPlainText()
-			
+					
 		query = str(self.query.text())
 		flags = re.I
 		pattern = re.compile(query, flags)
 		start = self.last_match.start() + 1 if self.last_match else 0
-
+	
 		self.last_match = pattern.search(self.text, start)
 		if self.last_match:
 			start = self.last_match.start()
@@ -653,7 +662,7 @@ class TextBox_Window(QObject):
 			self.query.setStyleSheet("""
 								.SearchLineEdit { background-color: #1E0000; color: #BFBFBF; border: 0px solid black; font-size: 14px; font-weight: bold; }
 								""")
-		
+	
 		self.move_cursor(start, end)
 			
 	#Move cursor to found text and highlight it
@@ -676,7 +685,7 @@ class TextBox_Window(QObject):
 		
 		if not TextBox_Window.dir_browser_open:
 			self.temp_dir = os.getcwd()
-		TextBox_Window.dir_browser_open = True;
+		TextBox_Window.dir_browser_open = True
 		self.dir_browser_search.setText("")
 
 		#Display the browser directory and remove the bottom label
@@ -744,7 +753,6 @@ class TextBox_Window(QObject):
 		self.dialog_button_box.addButton(self.new_file_button, QDialogButtonBox.ActionRole)
 
 		self.stacked_layout.setCurrentIndex(1)
-		self.dialog_button_box.setFocus()
 
 		self.file_label.setParent(None)
 		self.file_modified_label.setParent(None)
@@ -758,7 +766,7 @@ class TextBox_Window(QObject):
 		self.dir_browser_search.textChanged.connect(self.update_dir_browser)
 		self.dir_browser_search.returnPressed.connect(self.dialog_button_box.setFocus)
 		self.dir_browser_search.setFocus()
-		
+				
 	#Without opening file
 	def close_dir_browser(self):
 		if TextBox_Window.dir_browser_open == True:
@@ -781,6 +789,7 @@ class TextBox_Window(QObject):
 			self.dir_browser_search.setText("")
 			self.dir_browser_search.setParent(None)
 			TextBox_Window.dir_browser_open = False
+			TextBox_Window.new_file_displayed = False
 	
 	#Open the next directory of the dir browser
 	def open_dir(self, directory):
@@ -807,7 +816,7 @@ class TextBox_Window(QObject):
 					self.dialog_button_box.addButton(widget, QDialogButtonBox.ActionRole)
 				else:
 					pass
-															
+
 	def update_file_modified(self):
 		TextBox_Window.file_is_modified = True
 
@@ -850,41 +859,55 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.fmt = QTextCharFormat()
 		self.fmt.setForeground(QBrush(QColor("#454545")))
 		self.mergeCurrentCharFormat(self.fmt)
-		
+								
 		#Set default tab width to 4 spaces
 		TextBox_Window.font_metrics = QFontMetrics(self.font)
 		self.setTabStopWidth(4 * self.font_metrics.width(' '))
 
 		self.last_match = None
-
+	
 		self.highlighter = syntax.DarkHighlighter(self.document())
-
-		self.editor.setFocusPolicy(QtCore.Qt.StrongFocus)
-		self.editor.installEventFilter(self)
-							
+	
 	#Handle custom keyevents that occur in the editor	
 	def keyPressEvent(self, event):
    		k = event.key()
 		m = int(event.modifiers())
 		modifiers = QtGui.QApplication.keyboardModifiers()
-				
+						
+		#Split window
 		if QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+X'):
 			if not DarkPlainTextEdit.is_window_split:
 				self.split_buffer()
-		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Down'):
+				
+		#Insert navigation
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Down') \
+			or QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+K'):
 			self.next_empty_line()
-		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Up'):
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Up') \
+			or QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+I'):
 			self.previous_empty_line()
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+J'):
+			self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Left, Qt.ControlModifier)
+			QCoreApplication.postEvent(self, self.nav_event)
+		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+L'):
+			self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Right, Qt.ControlModifier)
+			QCoreApplication.postEvent(self, self.nav_event)
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+E'):
 			self.end_of_line()
-		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_Down:
+							
+		#Navigation navigation
+		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_Down \
+			or modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_K:
 			self.highlight_next_block()
-		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_Up:
+		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_Up \
+			or modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_I:
 			self.highlight_previous_block()
 		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier and k == QtCore.Qt.Key_E:
 			self.highlight_to_end_of_line()
 		elif modifiers == QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier:
 			self.highlight_mode = True
+					
+		#Switch editing mode / active window
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+M'):
 			self.switch_editing_mode()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Q'):
@@ -892,11 +915,46 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				self.textbox.setFocus()
 			else:
 				self.textbox2.setFocus()
-			
-		if k == QtCore.Qt.Key_Return:
+				
+		if k == QtCore.Qt.Key_Return:		
 			QtCore.QTimer.singleShot(10, self.auto_indent)
 			
+		#Emulate navigation mode arrow keys using I,J,K,L
+		if TextBox_Window.active_window == "Textbox" and TextBox_Window.nav_mode:
+			if k == QtCore.Qt.Key_I:
+				self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Up, Qt.NoModifier)
+				QCoreApplication.postEvent(self, self.nav_event)
+			elif k == QtCore.Qt.Key_J:
+				self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Left, Qt.NoModifier)
+				QCoreApplication.postEvent(self, self.nav_event)
+			elif k == QtCore.Qt.Key_K:
+				self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Down, Qt.NoModifier)
+				QCoreApplication.postEvent(self, self.nav_event)
+			elif k == QtCore.Qt.Key_L:
+				self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Right, Qt.NoModifier)
+				QCoreApplication.postEvent(self, self.nav_event)
+				
+		elif TextBox_Window.active_window == "Textbox2" and TextBox_Window.nav_mode_2:
+			if k == QtCore.Qt.Key_I:
+				self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Up, Qt.NoModifier)
+				QCoreApplication.postEvent(self, self.nav_event)
+			elif k == QtCore.Qt.Key_J:
+				self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Left, Qt.NoModifier)
+				QCoreApplication.postEvent(self, self.nav_event)
+			elif k == QtCore.Qt.Key_K:
+				self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Down, Qt.NoModifier)
+				QCoreApplication.postEvent(self, self.nav_event)
+			elif k == QtCore.Qt.Key_L:
+				self.nav_event = QKeyEvent(QEvent.KeyPress, Qt.Key_Right, Qt.NoModifier)
+				QCoreApplication.postEvent(self, self.nav_event)
+			
+		#Handle any other event normally
 		QtGui.QPlainTextEdit.keyPressEvent(self, event)
+			
+	#Disable right-click in text edit
+	def mouseReleaseEvent(self, event):
+		if event.button() == QtCore.Qt.RightButton:
+			pass
 		
 	def focusInEvent(self, event):
 		TextBox_Window.active_window = self.objectName()	
@@ -909,6 +967,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		super(DarkPlainTextEdit, self).focusOutEvent(event)
 		
 		self.set_inactive_browser_bar()
+		QApplication.restoreOverrideCursor()
 											
 	def set_active_browser_bar(self):
 		if TextBox_Window.active_window == "Textbox2":
@@ -997,11 +1056,19 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		
 		self.block = self.document_text.findBlockByLineNumber(self.line - 2)
 
+		#Insert tab for each tab at the start of previous line
 		tab = "\t"
 		tab_array = []
 		string_beginning = len(str(self.block.text())) - len(str(self.block.text()).lstrip(tab))
 		for i in range(string_beginning):
-			tab_array.append(tab)		
+			tab_array.append(tab)
+			
+		#Insert extra tab if ":" or "{" at EOL
+		line_text = str(self.block.text())
+		line_length = len(str(self.block.text()))
+		if line_length > 0:
+			if line_text[line_length - 1] == ":" or line_text[line_length - 1] == "{":
+				tab_array.append(tab)
 		
 		tab_string = "".join(tab_array)
 		self.cursor.insertText(tab_string)
@@ -1016,7 +1083,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.first_block = self.firstVisibleBlock()
 		
 		while self.block.isValid():
-			if re.search('[^\s*$]', self.block.next().text()): #and self.block.next().next().text() != self.first_block.text():
+			if re.search('[^\s*$]', self.block.next().text()):
 				self.block = self.block.next()
 			else:
 				if self.block.next().position() >= self.cursor.position() and self.block.next().position() != 0:
@@ -1066,9 +1133,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
  				break
 
 	#Ctrl+Shift+Up scrolling highlights previous block
-	def highlight_previous_block(self):
-		empty_lines = 0	
-	
+	def highlight_previous_block(self):	
 		self.cursor = self.textCursor()
 		self.line = self.cursor.blockNumber() + 1
 		self.document_text = self.document()
@@ -1106,7 +1171,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.setTextCursor(self.cursor)
 	
 	def switch_editing_mode(self):
-		if TextBox_Window.active_window == "Textbox2":
+		if TextBox_Window.active_window == "Textbox2":		
 			if TextBox_Window.textbox2.isReadOnly():
 				self.textbox2.setReadOnly(False)
 				self.textbox2.setStyle(TextBox_Window.textbox2.style())
@@ -1118,6 +1183,8 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				self.textbox2.setStyle(TextBox_Window.textbox2.style())
 				self.editmode_label2.setText("nav")
 				self.editmode_label2.setToolTip(TextBox_Window.nav_tooltip)
+	
+			TextBox_Window.nav_mode_2 = not TextBox_Window.nav_mode_2
 		else:
 			if TextBox_Window.textbox.isReadOnly():
 				self.textbox.setReadOnly(False)
@@ -1130,7 +1197,8 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				self.textbox.setStyle(TextBox_Window.textbox.style())
 				self.editmode_label.setText("nav")
 				self.editmode_label.setToolTip(TextBox_Window.nav_tooltip)
-				
+		
+			TextBox_Window.nav_mode = not TextBox_Window.nav_mode			
 
 #Custom QLineEdit for search query, removes search box when focus is lost
 class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
@@ -1144,10 +1212,12 @@ class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
 		
    	def focusOutEvent(self, event):
 		if TextBox_Window.search_displayed == True:
+			TextBox_Window.search_displayed == False
 			self.remove_search_box()
 		elif TextBox_Window.new_file_displayed == True:
+			TextBox_Window.new_file_displayed == False
 			self.remove_new_file_box()
-
+			
 #Custom QLabel for top bar
 class BrowserBarLabel(QtGui.QLabel, TextBox_Window):
 
@@ -1155,7 +1225,7 @@ class BrowserBarLabel(QtGui.QLabel, TextBox_Window):
 		super(BrowserBarLabel, self).__init__(parent)
 		
 		self.browser_label = QLabel()
-		self.setFixedHeight(self.font_metrics.height() + 6)
+		self.setFixedHeight(self.font_metrics.height() + 4)
 		self.setFont(TextBox_Window.font)
 		self.setAlignment(QtCore.Qt.AlignRight)
 		self.setStyleSheet("""
