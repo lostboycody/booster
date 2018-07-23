@@ -1,6 +1,4 @@
-Welcome to Darkscrawl
-										by
-								    Cody Azevedo
+--------------------------- Welcome to Darkscraw by Cody Azevedo ---------------------
 
 Darkscrawl is an open-source, simple, and menacingly dark text editor.
 This editor follows the UNIX design philosophy.
