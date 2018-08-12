@@ -1,28 +1,23 @@
 #Custom text editor. Dark theme, emacs inspired.
 #WORKNAME: darkscrawl
+#This file handles the setup of the application.
 #2018 Cody Azevedo
 
 import sys
-import os
-import threading
-import re
-import string
-import ntpath
-import platform
-import syntax
-from textbox import TextBox_Window
-from threading import Thread 
-from PyQt4 import QtCore
+
+from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import *
-from PyQt4 import QtGui
 from PyQt4.QtGui import *
-from functools import partial
+
+from textbox import TextBox_Window
 
 #Create instance of text box
 main_text_window = TextBox_Window()
 
 #Create main window, handles key inputs and initializes application
 class MainWindow(QMainWindow, TextBox_Window):
+	
+	exit_displayed = False
 
 	def __init__(self, parent = None):
 		super(MainWindow, self).__init__(parent)
@@ -32,9 +27,6 @@ class MainWindow(QMainWindow, TextBox_Window):
 	def keyPressEvent(self, event):
    		k = event.key()
 		m = int(event.modifiers())
-
-		#TODO(Cody): Handle Ctrl+X+S, Ctrl+X+F etc.
-		#self.textbox.connect(QtGui.QShortcut(QtGui.QKeySequence(Qt.CTRL + Qt.Key_X, Qt.CTRL + Qt.Key_F), self), QtCore.SIGNAL('activated()'), self.file_open())
 		
 		if QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+S'):
 			self.file_save()
@@ -42,24 +34,124 @@ class MainWindow(QMainWindow, TextBox_Window):
 			if not TextBox_Window.dir_browser_open:
 				self.open_dir_browser()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+F'):
-			self.setup_search_box()
+			if TextBox_Window.search_displayed:
+				self.search_in_file()
+			else:
+				self.setup_search_box()
+				
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+G'):
-			if TextBox_Window.search_displayed == 1:
+			if TextBox_Window.search_displayed == True:
 				self.remove_search_box()
-			elif TextBox_Window.new_file_displayed == 1:
+			elif TextBox_Window.new_file_displayed == True:
 				self.remove_new_file_box()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+N'):
 			self.setup_new_file()
-#		elif TextBox_Window.dir_browser_open == True and k:
-#			self.open_previous_dir()
 			
 		elif k == QtCore.Qt.Key_Escape:
 			self.close_dir_browser()
+		elif k == QtCore.Qt.Key_F11:
+			if self.windowState() != Qt.WindowMaximized:
+				self.setWindowState(Qt.WindowMaximized)
+			else:
+				self.setWindowState(Qt.WindowFullScreen)
+			
+	def closeEvent(self, event):
+		if TextBox_Window.file_1_is_modified:
+			event.ignore()
+			
+			if not MainWindow.exit_displayed:
+				MainWindow.exit = ExitLineEdit("")
+				self.exit.setFixedHeight(self.font_metrics.height() + 6)
+				self.exit.setFont(TextBox_Window.font)
+				self.exit.returnPressed.connect(self.exit_app)
 
+			self.file_label.setParent(None)
+			self.file_modified_label.setParent(None)
+			self.filemode_label.setParent(None)
+			self.editmode_label.setParent(None)
+			self.line_label.setParent(None)
 
+			self.browser_layout.addWidget(self.exit)
+			self.browser_layout.addWidget(self.file_modified_label)
+			self.browser_layout.addWidget(self.file_label)
+			self.browser_layout.addWidget(self.filemode_label)
+			self.browser_layout.addWidget(self.editmode_label)
+			self.browser_layout.addWidget(self.line_label)
+			
+			self.exit.setFocus()
+			MainWindow.exit_displayed = True
+
+			self.main_text_label.setText("Buffer 1 has unsaved changes. Exit anyway? (Yes/No):")
+
+		elif TextBox_Window.file_2_is_modified:
+			event.ignore()
+			
+			if not MainWindow.exit_displayed:
+				MainWindow.exit = ExitLineEdit("")
+				self.exit.setFixedHeight(self.font_metrics.height() + 6)
+				self.exit.setFont(TextBox_Window.font)
+				self.exit.returnPressed.connect(self.exit_app)
+
+			self.file_label2.setParent(None)
+			self.file_modified_label2.setParent(None)
+			self.filemode_label2.setParent(None)
+			self.editmode_label2.setParent(None)
+			self.line_label2.setParent(None)
+
+			self.browser_layout2.addWidget(self.exit)
+			self.browser_layout2.addWidget(self.file_modified_label2)
+			self.browser_layout2.addWidget(self.file_label2)
+			self.browser_layout2.addWidget(self.filemode_label2)
+			self.browser_layout2.addWidget(self.editmode_label2)
+			self.browser_layout2.addWidget(self.line_label2)
+			
+			self.exit.setFocus()
+			MainWindow.exit_displayed = True
+
+			self.main_text_label2.setText("Buffer 2 has unsaved changes. Exit anyway? (Yes/No):")
+
+	def exit_app(self):
+		if self.exit.text() == "yes":
+			sys.exit()
+		else:
+			MainWindow.exit.setParent(None)
+			MainWindow.exit.setText("")
+			self.main_text_label.setText("")
+
+			if TextBox_Window.active_window == "Textbox2":
+				self.textbox2.setFocus()
+			else:
+				self.textbox.setFocus()
+								
+class ExitLineEdit(QtGui.QLineEdit, TextBox_Window):
+
+	def __init__(self, parent = None):
+		super(ExitLineEdit, self).__init__(parent)
+		self.exit_line_edit = QLineEdit()
+		self.setStyleSheet("""
+							ExitLineEdit { background-color: #050505; color: #BFBFBF; border: 0px solid black; font-size: 14px; font-weight: bold; }
+						""")
+		
+   	def focusOutEvent(self, event):
+		if MainWindow.exit_displayed == True:
+			MainWindow.exit_displayed == False
+			self.remove_exit()
+		elif MainWindow.exit_displayed == True:
+			MainWindow.exit_displayed == False
+			self.remove_exit()
+
+	def remove_exit(self):
+			MainWindow.exit.setParent(None)
+			self.main_text_label.setText("")
+			if TextBox_Window.active_window == "Textbox2":
+				self.textbox2.setFocus()
+			else:
+				self.textbox.setFocus()
+									
 if __name__ == '__main__':
 	#Every PyQt4 app must create an application object, sys.argv is arguments from cmd line
 	app = QtGui.QApplication(sys.argv)
+	app.setWindowIcon(QIcon('icon.png'))
 	w = MainWindow()
 	w.resize(TextBox_Window.font_metrics.width(" ") * 88, TextBox_Window.font_metrics.lineSpacing() * 40)
 	w.show()
