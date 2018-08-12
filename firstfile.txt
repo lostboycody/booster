@@ -5,7 +5,7 @@ This editor follows the UNIX design philosophy.
 Feel free to fork this directory and customize it to your liking!
 
 -VERSION-
-v1.0.0
+v1.1.0
 
 -CONTROLS-
 Ctrl-O: Open file browser.
@@ -20,8 +20,9 @@ Ctrl-Z: Undo last insert.
 Ctrl-E: Move to end of the line.
 Ctrl-Shift-E: Select to end of the line.
 Ctrl-G: Exit top browser bar.
-Ctrl-X: Split the window.
+Ctrl-X: Split the window. Press again to hide the window.
 Ctrl-Q: Switch window focus.
+F11:    Enter fullscreen.
 
 -THEME-
 To change to a basic color theme, use:
@@ -29,7 +30,7 @@ To change to a basic color theme, use:
 	> python darkscrawl.py <color>
 
 Current color options:
-red, orange, yellow, blue, green, strangerthings, flosv8cafe (don't ask)
-(Green is my favorite!)
+red, orange, yellow, blue, green, strangerthings, flosv8cafe, scoopsahoy
 
-To report a bug, please email codya@protonmail.com. Happy scrawling!
+
+To report a bug, please email me at codya@protonmail.com. Happy scrawling!
