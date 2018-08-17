@@ -37,7 +37,10 @@ class TextBox_Window(QObject):
 	nav_tooltip = "This buffer is in navigation mode."
 	ins_tooltip = "This buffer is in insert mode."
 	nix_tooltip = "This file is encoded in the UNIX EOL format."
-	dos_tooltip = "This file is encoded in the DOS (Windows) EOL format."	
+	dos_tooltip = "This file is encoded in the DOS (Windows) EOL format."
+	file_extensions = [".py", ".java", ".cpp", ".c", ".htm", ".html", ".js",
+	".css", ".php", ".h", ".cs", ".sh"]
+	
 			
 	def __init__(self, parent=None):
 		super(TextBox_Window, self).__init__(parent)
@@ -60,8 +63,8 @@ class TextBox_Window(QObject):
 									
 		TextBox_Window.font = QtGui.QFont()
 		TextBox_Window.font.setPointSize(11)
-		TextBox_Window.font.setFamily("Consolas")
-	
+		TextBox_Window.font.setFamily("Consolas")	
+		
 		self.create_text_box()
 		self.create_text_box2()
 			
@@ -97,12 +100,15 @@ class TextBox_Window(QObject):
 		self.outer_widget_2.setStyleSheet("""
 							QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
 							QScrollArea { background-color: transparent; border: 0px solid black; }
-							QWidget { background-color: transparent; border-left: 1px solid #7A7A7A; }
+							QWidget { background-color: transparent; border-left: 2px solid #131313; }
 						""")
 			
 		#Splitter, for dragging margin between split windows
 		TextBox_Window.splitter = QSplitter(self.widget)
 		self.splitter.setHandleWidth(1)
+		self.splitter.setStyleSheet("""
+							.QSplitter::handle { background-color: transparent; }
+						""")
 		self.splitter.addWidget(self.outer_widget_1)
 
 		#Setup top browser line
@@ -131,6 +137,7 @@ class TextBox_Window(QObject):
 						""")
 		self.browser_layout_widget2.setLayout(self.browser_layout2)
 		self.browser_layout_widget2.setFixedHeight(self.font_metrics.height() + 4)
+
 
 		self.grid_layout.addWidget(self.browser_layout_widget, 0, 0)
 
@@ -211,11 +218,6 @@ class TextBox_Window(QObject):
 		
 		self.textbox2.cursorPositionChanged.connect(self.update_cursor_position)
 		self.last_match = None
-		self.highlighter2 = syntax.DarkHighlighter(self.textbox2.document())
-
-		self.fmt = QTextCharFormat()
-		self.fmt.setForeground(QBrush(QColor("#7A7A7A")))
-		self.textbox2.mergeCurrentCharFormat(self.fmt)
 
 		self.textbox2.setObjectName("Textbox2")
 		self.textbox2.setCenterOnScroll(False)
@@ -267,16 +269,16 @@ class TextBox_Window(QObject):
 		self.block = self.document.findBlockByLineNumber(self.line - 1)
 
 		if TextBox_Window.active_window == "Textbox2":
-			self.line_label2.setText("L{} C{}".format(self.line, self.col))
+			self.line_label2.setText("L#{} C#{}".format(self.line, self.col))
 			#Accomodate for right border
 			if DarkPlainTextEdit.is_window_split:
-				self.line_label2.setFixedWidth(self.font_metrics.width(self.line_label2.text()) + 12)
+				self.line_label2.setFixedWidth(self.font_metrics.width(self.line_label2.text()) + 7)
 			else:
 				self.line_label2.setFixedWidth(self.font_metrics.width(self.line_label2.text()) + 10)
 		else:	
-			self.line_label.setText("L{} C{}".format(self.line, self.col))
+			self.line_label.setText("L#{} C#{}".format(self.line, self.col))
 			if DarkPlainTextEdit.is_window_split:
-				self.line_label.setFixedWidth(self.font_metrics.width(self.line_label.text()) + 12)
+				self.line_label.setFixedWidth(self.font_metrics.width(self.line_label.text()) + 7)
 			else:
 				self.line_label.setFixedWidth(self.font_metrics.width(self.line_label.text()) + 10)		
 
@@ -307,11 +309,11 @@ class TextBox_Window(QObject):
 			with self.file:
 				TextBox_Window.open_text = self.file.read()
 				self.file_length = len(self.open_text)
-				
+								
 			if TextBox_Window.active_window == "Textbox2":
 				TextBox_Window.file_path_2 = str(os.path.join(os.getcwd(), file))
 				TextBox_Window.file_name_2 = self.get_file_name(file)
-
+				
 				self.document = self.textbox2.document()
 				self.textbox2.setPlainText(self.open_text)
 				self.file_label2.setFixedWidth(self.font_metrics.width(self.file_label2.text()) + 5)
@@ -372,14 +374,11 @@ class TextBox_Window(QObject):
 							
 		if TextBox_Window.active_window == "Textbox2":
 			self.main_text_label.setText("")
-			TextBox_Window.file_2_is_modified = False
-			self.file_modified_label2.setText("")
-			self.file_modified_label2.setFixedWidth(0)
 			self.file_label2.setText(self.file_name_2)
 		   	self.file_label2.setFixedWidth(self.font_metrics.width(self.file_name_2) + 10)
 			self.block = self.textbox2.firstVisibleBlock()
 			self.update_bottom_label("Opened {}".format(self.file_name_2))
-
+			
 			try:
 				if "\r\n" in open(file, "rb").read():
 					self.filemode_label2.setText("dos")
@@ -392,14 +391,13 @@ class TextBox_Window(QObject):
 			except:
 				pass
 		else:
-			TextBox_Window.file_1_is_modified = False
 			self.file_modified_label.setText("")
 			self.file_modified_label.setFixedWidth(0)
 			self.file_label.setText(self.file_name)
 		   	self.file_label.setFixedWidth(self.font_metrics.width(self.file_name) + 10)
 			self.block = self.textbox.firstVisibleBlock()
 			self.update_bottom_label("Opened {}".format(self.file_name))
-			
+											
 			try:
 				if "\r\n" in open(file, "rb").read():
 					self.filemode_label.setText("dos")
@@ -421,8 +419,10 @@ class TextBox_Window(QObject):
 					
 		self.update_cursor_position()
 		self.dir_browser_search.setParent(None)
-
+		
 		TextBox_Window.dir_browser_open = False
+
+		self.apply_syntax_highlight()
 		
 		#Replace top browser after file browser closes
 		self.browser_layout.addWidget(self.file_modified_label)
@@ -435,6 +435,7 @@ class TextBox_Window(QObject):
 
 		if TextBox_Window.active_window == "Textbox2":
 			TextBox_Window.main_file_path = TextBox_Window.file_path_2
+			TextBox_Window.file_2_is_modified = False
 			self.stacked_layout.setCurrentIndex(0)
 			self.textbox2.setFocus()
 
@@ -444,13 +445,16 @@ class TextBox_Window(QObject):
 					widget.setStyle(widget.style())
 		else:
 			TextBox_Window.main_file_path = TextBox_Window.file_path
+			TextBox_Window.file_1_is_modified = False
 			self.stacked_layout.setCurrentIndex(0)
 			self.textbox.setFocus()
-			
+
 			for widget in TextBox_Window.browser_layout_widget.children():
 				if isinstance(widget, BrowserBarLabel) or isinstance(widget, QLabel):
 					widget.setProperty("is_active", True)
-					widget.setStyle(widget.style())
+					widget.setStyle(widget.style())		
+					
+		QtCore.QTimer.singleShot(20, self.set_file_not_modified)
 
    	def file_save(self):
 		if TextBox_Window.active_window == "Textbox2":
@@ -588,7 +592,22 @@ class TextBox_Window(QObject):
 		and self.main_text_label2.text() != "Buffer 2 has unsaved changes. Exit anyway? (Yes/No):" :
 			self.main_text_label.setText("")
 			self.main_text_label2.setText("")
-
+			
+	#Apply syntax highlighting only if the file is a source file.
+	def apply_syntax_highlight(self):				
+		if TextBox_Window.active_window == "Textbox2":
+			for extension in TextBox_Window.file_extensions:
+				if extension in TextBox_Window.file_name_2:
+					self.highlighter2 = syntax.DarkSourceHighlighter(self.textbox2.document(), TextBox_Window.file_name_2)
+				else:
+					self.highlighter2 = syntax.DarkHighlighter(self.textbox2.document())
+		else:
+			for extension in TextBox_Window.file_extensions:
+				if extension in TextBox_Window.file_name:
+					self.highlighter = syntax.DarkSourceHighlighter(self.textbox.document(), TextBox_Window.file_name)
+				else:
+					self.highlighter = syntax.DarkHighlighter(self.textbox.document())
+					
 	def highlight_current_line(self):
 		self.extraSelections = []
 		if not self.textbox.isReadOnly():
@@ -613,7 +632,7 @@ class TextBox_Window(QObject):
 			self.search_text.setFixedHeight(self.font_metrics.height() + 6)
 			self.search_text.setFont(TextBox_Window.font)
 			self.search_text.setStyleSheet("""
-								background-color: #050505; color: #BFBFBF; padding-top: 4px; border: 0px solid black; font-size: 14px; font-weight: 700;
+								background-color: #050505; color: #BFBFBF; padding-top: 2px; border: 0px solid black; font-size: 14px; font-weight: 700;
 							""")
 							
 			if TextBox_Window.active_window == "Textbox2":
@@ -886,6 +905,16 @@ class TextBox_Window(QObject):
 			TextBox_Window.file_modified_label.setText("~")
 			TextBox_Window.file_modified_label.setFixedWidth(self.font_metrics.width(" ") + 10)
 			TextBox_Window.file_modified_label.setToolTip("This buffer has been modified.")
+			
+	def set_file_not_modified(self):
+		if TextBox_Window.active_window == "Textbox2":
+			TextBox_Window.file_2_is_modified = False
+			TextBox_Window.file_modified_label2.setText("")
+			TextBox_Window.file_modified_label2.setFixedWidth(0)
+		else:
+			TextBox_Window.file_1_is_modified = False
+			TextBox_Window.file_modified_label.setText("")
+			TextBox_Window.file_modified_label.setFixedWidth(0)
 
 
 class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
@@ -898,37 +927,75 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.editor = QPlainTextEdit()
 		self.setMinimumSize(10, 10)
 		self.setLineWrapMode(0)
-		self.setStyleSheet("""
-	   				DarkPlainTextEdit { background-color: #0A0B0A; selection-color: #BFBFBF; selection-background-color: #0C0075; color: #378437; }
-					DarkPlainTextEdit[readOnly=true] { color: #843837; }
-					.QScrollBar { height: 0px; width: 0px; }
-   	    		""")
 		self.setReadOnly(False)
 
    		self.setFrameStyle(QFrame.NoFrame)
 		self.ensureCursorVisible()
-
-		self.font = QtGui.QFont()
- 		self.font.setPointSize(11)
-  		self.font.setFamily("Consolas")
-   		self.setFont(self.font)
-
+				
+		self.setFont(TextBox_Window.font)
+			
 		self.setContextMenuPolicy(Qt.PreventContextMenu)
 		self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 	
-		#Set color format back to gray, so cursor stays green
 		self.fmt = QTextCharFormat()
-		self.fmt.setForeground(QBrush(QColor("#7A7A7A")))
-		self.mergeCurrentCharFormat(self.fmt)
-										
+		
+		self.setStyleSheet("""
+		   	DarkPlainTextEdit { background-color: #0A0B0A; selection-color: #BFBFBF; selection-background-color: #0C0075; color: #378437; }
+			DarkPlainTextEdit[readOnly=true] { color: #843837; }
+			.QScrollBar { height: 0px; width: 0px; }
+		""")
+
+		#Set color format base for all themes, so cursor stays green
+		try:
+			if str(sys.argv[1]) == "green":
+				self.fmt.setForeground(QBrush(QColor("#90AF7F")))
+				self.mergeCurrentCharFormat(self.fmt)	
+			elif str(sys.argv[1]) == "blue":
+				self.fmt.setForeground(QBrush(QColor("#7FA8AF")))
+				self.mergeCurrentCharFormat(self.fmt)
+			elif str(sys.argv[1]) == "red":
+				self.fmt.setForeground(QBrush(QColor("#AF867F")))
+				self.mergeCurrentCharFormat(self.fmt)
+			elif str(sys.argv[1]) == "orange":
+				self.fmt.setForeground(QBrush(QColor("#AF8D7F")))
+				self.mergeCurrentCharFormat(self.fmt)
+			elif str(sys.argv[1]) == "yellow":
+				self.fmt.setForeground(QBrush(QColor("#AFAF7F")))
+				self.mergeCurrentCharFormat(self.fmt)
+			elif str(sys.argv[1]) == "scoopsahoy":
+				self.fmt.setForeground(QBrush(QColor("#7E8291")))
+				self.mergeCurrentCharFormat(self.fmt)
+			elif str(sys.argv[1]) == "brown":
+				self.fmt.setForeground(QBrush(QColor("#8a7d67")))
+				self.mergeCurrentCharFormat(self.fmt)
+				self.setStyleSheet("""
+			   				DarkPlainTextEdit { background-color: #232323; selection-color: #BFBFBF; selection-background-color: #0C0075; color: #378437; }
+							DarkPlainTextEdit[readOnly=true] { color: #843837; }
+							.QScrollBar { height: 0px; width: 0px; }
+   	    				""")
+			else:
+				self.fmt.setForeground(QBrush(QColor("#878787")))
+				self.mergeCurrentCharFormat(self.fmt)	
+				self.setStyleSheet("""
+			   				DarkPlainTextEdit { background-color: #0A0B0A; selection-color: #BFBFBF; selection-background-color: #0C0075; color: #378437; }
+							DarkPlainTextEdit[readOnly=true] { color: #843837; }
+							.QScrollBar { height: 0px; width: 0px; }
+   	    				""")
+		except:
+			self.fmt.setForeground(QBrush(QColor("#878787")))
+			self.mergeCurrentCharFormat(self.fmt)	
+			self.setStyleSheet("""
+		   				DarkPlainTextEdit { background-color: #0A0B0A; selection-color: #BFBFBF; selection-background-color: #0C0075; color: #378437; }
+						DarkPlainTextEdit[readOnly=true] { color: #843837; }
+						.QScrollBar { height: 0px; width: 0px; }
+   	    			""")
+												
 		#Set default tab width to 4 spaces
-		TextBox_Window.font_metrics = QFontMetrics(self.font)
+		TextBox_Window.font_metrics = QFontMetrics(TextBox_Window.font)
 		self.setTabStopWidth(4 * self.font_metrics.width(' '))
 
 		self.last_match = None
-	
-		self.highlighter = syntax.DarkHighlighter(self.document())
-	
+		
 	#Handle custom keyevents that occur in the editor	
 	def keyPressEvent(self, event):
    		k = event.key()
@@ -982,6 +1049,8 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				
 		if k == QtCore.Qt.Key_Return:		
 			QtCore.QTimer.singleShot(10, self.auto_indent)
+		elif k == QtCore.Qt.Key_Tab:
+			self.indent_selected_text()
 			
 		#Emulate navigation mode arrow keys using I,J,K,L
 		if TextBox_Window.active_window == "Textbox" and TextBox_Window.nav_mode:
@@ -1038,7 +1107,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 					widget.setStyle(widget.style())
 					if widget.objectName() == "FileModifiedLabel2":
 						widget.setStyleSheet("""
-											background-color: #7A7A7A; color: #800000; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700;
+											background-color: #878787; color: #800000; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700;
 										""")
 		else:
 			TextBox_Window.main_file_path = TextBox_Window.file_path
@@ -1049,7 +1118,7 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 					widget.setStyle(widget.style())
 					if widget.objectName() == "FileModifiedLabel":
 						widget.setStyleSheet("""
-											background-color: #7A7A7A; color: #800000; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700;
+											background-color: #878787; color: #800000; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700;
 										""")
 	def set_inactive_browser_bar(self):
 		if not TextBox_Window.dir_browser_open:
@@ -1093,15 +1162,15 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		self.container_widget.setStyleSheet("""
 							QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
 							QScrollArea { background-color: transparent; border: 0px solid black; }
-							QWidget { background-color: transparent; border-left: 1px solid #121212; }
+							QWidget { background-color: transparent; }
 						""")
 		self.line_label.setStyleSheet("""
-							BrowserBarLabel { background-color: black; color: #7A7A7A; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 2px solid #7A7A7A; }
-							BrowserBarLabel[is_active=true] { background-color: #7A7A7A; color: black; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 2px solid #7A7A7A; }
+							BrowserBarLabel { background-color: black; color: #878787; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; }
+							BrowserBarLabel[is_active=true] { background-color: #878787; color: black; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; }
 						""")
 		self.line_label2.setStyleSheet("""
-							BrowserBarLabel { background-color: black; color: #7A7A7A; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 2px solid black; }
-							BrowserBarLabel[is_active=true] { background-color: #7A7A7A; color: black; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 2px solid #7A7A7A; }
+							BrowserBarLabel { background-color: black; color: #878787; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 0px solid black; }
+							BrowserBarLabel[is_active=true] { background-color: #878787; color: black; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 0px solid black; }
 						""")
 	
 		self.splitter.addWidget(self.outer_widget_2)
@@ -1140,6 +1209,26 @@ class DarkPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		tab_string = "".join(tab_array)
 		self.cursor.insertText(tab_string)
 		
+	#Indent selected text if user pressed TAB while multiple lines are selected.
+	def indent_selected_text(self):
+		if TextBox_Window.active_window == "Textbox2":
+			self.cursor = self.textbox2.textCursor()
+		else:
+			self.cursor = self.textbox.textCursor()
+			
+		self.selected_text = unicode(self.cursor.selectedText())
+		special = u"\u2029"
+
+		for line in self.selected_text.splitlines():
+			if special in self.selected_text:
+				if platform.system() == "Windows":
+					self.cursor.insertText('\t' + line + '\r\n')
+				else:
+					self.cursor.insertText('\t' + line + '\n')
+					
+		if special in self.selected_text:
+			QtCore.QTimer.singleShot(1, self.cursor.deletePreviousChar)
+
 	#Ctrl + Down scrolling: moves cursor to next block of code
 	def next_empty_line(self):			
 		self.cursor = self.textCursor()
@@ -1295,10 +1384,22 @@ class BrowserBarLabel(QtGui.QLabel, TextBox_Window):
 		self.setFixedHeight(self.font_metrics.height() + 4)
 		self.setFont(TextBox_Window.font)
 		self.setAlignment(QtCore.Qt.AlignRight)
-		self.setStyleSheet("""
-						BrowserBarLabel { background-color: black; color: #7A7A7A; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 3px solid #0A0B0A; }
-						BrowserBarLabel[is_active=true] { background-color: #7A7A7A; color: black; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 3px solid #0A0B0A;}
-					""")
+		try:
+			if str(sys.argv[1]) == "brown":
+				self.setStyleSheet("""
+							BrowserBarLabel { background-color: black; color: #878787; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 3px solid #232323; }
+							BrowserBarLabel[is_active=true] { background-color: #878787; color: black; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 3px solid #232323;}
+						""")
+			else:
+				self.setStyleSheet("""
+								BrowserBarLabel { background-color: black; color: #878787; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 3px solid #0A0B0A; }
+								BrowserBarLabel[is_active=true] { background-color: #878787; color: black; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 3px solid #0A0B0A;}
+							""")
+		except:	
+			self.setStyleSheet("""
+							BrowserBarLabel { background-color: black; color: #878787; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 3px solid #0A0B0A; }
+							BrowserBarLabel[is_active=true] { background-color: #878787; color: black; padding-top: 4px; margin: 0; height: 10px; font-size: 14px; font-weight: 700; border-right: 3px solid #0A0B0A;}
+						""")
 
 #TODO(cody): Implement this to autocomplete based on word suggestions that
 #            already exist in the document by pressing ctrl+tab
@@ -1321,8 +1422,3 @@ class DarkAutoCompleter(object):
 				return self.matches[state]
 			except IndexError:
 				return None
-
-
-
-
-
