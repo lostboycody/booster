@@ -25,6 +25,7 @@ class TextBox_Window(QObject):
 	dir_browser_opened = False
 	file_1_is_modified = False
 	file_2_is_modified = False
+	has_been_split = False
 	active_window = ""
 	file_name = "null.txt"
 	file_name_2 = "null.txt"
@@ -242,13 +243,7 @@ class TextBox_Window(QObject):
 		self.textbox2.setCursorWidth(self.font_metrics.width(" "))
 
 		#Open the intro file, as read only
-		self.file = open("firstfile.txt", 'rb')
-		with self.file:
-		   	text = self.file.read()
-		   	self.textbox.setPlainText(text)
-		   	self.file_length = len(text)
-			
-		self.textbox.setReadOnly(True)
+		self.file_open("firstfile.txt")
 		
 	#Custom QPlainTextEdit
    	def create_text_box(self):
@@ -518,13 +513,24 @@ class TextBox_Window(QObject):
 		self.apply_syntax_highlight(TextBox_Window.syntax_theme)
 		
 		#Replace top browser after file browser closes
-		self.browser_layout.addWidget(self.file_modified_label)
-		self.browser_layout.addWidget(self.file_label)
-		self.browser_layout.addWidget(self.filemode_label)
-		self.browser_layout.addWidget(self.editmode_label)
-		self.browser_layout.addWidget(self.line_label)
+		if not "firstfile.txt" in str(os.path.abspath(file)):
+			self.browser_layout.addWidget(self.file_modified_label)
+			self.browser_layout.addWidget(self.file_label)
+			self.browser_layout.addWidget(self.filemode_label)
+			self.browser_layout.addWidget(self.editmode_label)
+			self.browser_layout.addWidget(self.line_label)
 
-		TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width(), 0, 0, 0)
+			self.file_modified_label.setVisible(True)
+			self.file_label.setVisible(True)
+			self.filemode_label.setVisible(True)
+			self.editmode_label.setVisible(True)
+			self.line_label.setVisible(True)
+		else:
+			self.file_modified_label.setVisible(False)
+			self.file_label.setVisible(False)
+			self.filemode_label.setVisible(False)
+			self.editmode_label.setVisible(False)
+			self.line_label.setVisible(False)
 
 		if TextBox_Window.active_window == "Textbox2":
 			TextBox_Window.main_file_path = TextBox_Window.file_path_2
@@ -546,13 +552,6 @@ class TextBox_Window(QObject):
 					widget.setStyle(widget.style())
 					
 		QtCore.QTimer.singleShot(20, self.set_file_not_modified)
-	
-		if BoostPlainTextEdit.is_window_split:
-			TextBox_Window.browser_layout_widget.setFixedWidth(TextBox_Window.outer_widget_1.width() + 1)
-			TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width() + 2, 0, 0, 0)
-		else:
-			TextBox_Window.browser_layout_widget.setFixedWidth(TextBox_Window.outer_widget_1.width() + 1)
-			TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width() + 2, 0, 0, 0)	
 			
 		self.browser_layout_widget.setFixedHeight(self.bar_font_metrics.height() + 4)
 		self.browser_layout_widget2.setFixedHeight(self.bar_font_metrics.height() + 4)		
@@ -937,7 +936,7 @@ class TextBox_Window(QObject):
 		self.browser_layout_widget2.setFixedHeight(self.bar_font_metrics.height() + 4)
 		self.dir_browser_search.setFixedHeight(self.bar_font_metrics.height() + 4)
 
-		self.temp_current_dir_list = []
+		TextBox_Window.temp_current_dir_list = []
 
 		for item in self.current_dir_list:
 			if str(self.query_string.text()) in str(item).lower():
@@ -1290,15 +1289,7 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 						
 		#Split window
 		if QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+X'):
-			if not BoostPlainTextEdit.is_window_split:
-				self.split_buffer()
-			else:
-				if TextBox_Window.active_window == "Textbox2":
-					self.outer_widget_1.setHidden(not self.outer_widget_1.isHidden())
-					self.textbox2.setFocus()
-				else:
-					self.outer_widget_2.setHidden(not self.outer_widget_2.isHidden())
-					self.textbox.setFocus()
+			self.split_buffer()
 				
 		#Insert navigation
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Down') \
@@ -1332,10 +1323,11 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+M'):
 			self.switch_editing_mode()
 		elif QtGui.QKeySequence(m+k) == QtGui.QKeySequence('Ctrl+Q'):
-			if not self.textbox.hasFocus():
-				self.textbox.setFocus()
-			else:
-				self.textbox2.setFocus()
+			if BoostPlainTextEdit.is_window_split:
+				if self.textbox.hasFocus():
+					self.textbox2.setFocus()
+				elif self.textbox2.hasFocus():
+					self.textbox.setFocus()
 				
 		if k == QtCore.Qt.Key_Return:		
 			QtCore.QTimer.singleShot(10, self.auto_indent)
@@ -1510,63 +1502,78 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 					
 	#Split the window to enable editing two files
 	def split_buffer(self):
-		BoostPlainTextEdit.is_window_split = True
-		
-		self.grid_layout.addWidget(self.browser_layout_widget2, 0, 0)
-		self.container_widget = QScrollArea()
-		self.container_widget.setStyleSheet("""
-							QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
-							QScrollArea { background-color: transparent; border: 0px solid black; }
-							QWidget { background-color: transparent; }
-						""")
-		try:
-			if str(sys.argv[1]) == "forest":
+		if not TextBox_Window.has_been_split:
+			self.grid_layout.addWidget(self.browser_layout_widget2, 0, 0)
+			self.container_widget = QScrollArea()
+			self.container_widget.setStyleSheet("""
+								QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
+								QScrollArea { background-color: transparent; border: 0px solid black; }
+								QWidget { background-color: transparent; }
+							""")
+			try:
+				if str(sys.argv[1]) == "forest":
+					self.line_label.setStyleSheet("""
+										BrowserBarLabel { background-color: #878787; color: black; padding-top: 3px; margin: 0; height: 12px; }
+										BrowserBarLabel[is_active=true] { background-color: #BBC1A8; color: black; padding-top: 3px; margin: 0; height: 12px;  }
+									""")
+					self.line_label2.setStyleSheet("""
+										BrowserBarLabel { background-color: #878787; color: black; padding-top: 3px; margin: 0; height: 12px; border-right: 0px solid black; }
+										BrowserBarLabel[is_active=true] { background-color: #BBC1A8; color: black; padding-top: 3px; margin: 0; height: 12px; border-right: 0px solid black; }
+									""")
+				else:
+					self.line_label.setStyleSheet("""
+										BrowserBarLabel { background-color: #DBD9D5; color: #878787; padding-top: 3px; margin: 0; height: 12px;  }
+										BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: black; padding-top: 3px; margin: 0; height: 12px; }
+									""")
+					self.line_label2.setStyleSheet("""
+										BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 0px solid black; }
+										BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 0px solid black; }
+									""")
+	
+			except:
 				self.line_label.setStyleSheet("""
-									BrowserBarLabel { background-color: #878787; color: black; padding-top: 3px; margin: 0; height: 12px; }
-									BrowserBarLabel[is_active=true] { background-color: #BBC1A8; color: black; padding-top: 3px; margin: 0; height: 12px;  }
+									BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; ; }
+									BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; }
 								""")
 				self.line_label2.setStyleSheet("""
-									BrowserBarLabel { background-color: #878787; color: black; padding-top: 3px; margin: 0; height: 12px; border-right: 0px solid black; }
-									BrowserBarLabel[is_active=true] { background-color: #BBC1A8; color: black; padding-top: 3px; margin: 0; height: 12px; border-right: 0px solid black; }
+									BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; }
+									BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; }
 								""")
-			else:
-				self.line_label.setStyleSheet("""
-									BrowserBarLabel { background-color: #DBD9D5; color: #878787; padding-top: 3px; margin: 0; height: 12px;  }
-									BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: black; padding-top: 3px; margin: 0; height: 12px; }
-								""")
-				self.line_label2.setStyleSheet("""
-									BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 0px solid black; }
-									BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 0px solid black; }
-								""")
-
-		except:
-			self.line_label.setStyleSheet("""
-								BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; ; }
-								BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; }
-							""")
-			self.line_label2.setStyleSheet("""
-								BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; }
-								BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; }
-							""")
-
-		self.splitter.addWidget(self.outer_widget_2)
-		BoostPlainTextEdit.stacked_layout2 = QtGui.QStackedLayout(self.outer_widget_2)
-		self.stacked_layout2.setMargin(0)
-		self.stacked_layout2.setSpacing(0)
+	
+			self.splitter.addWidget(self.outer_widget_2)
+			BoostPlainTextEdit.stacked_layout2 = QtGui.QStackedLayout(self.outer_widget_2)
+			self.stacked_layout2.setMargin(0)
+			self.stacked_layout2.setSpacing(0)
+			
+			self.stacked_layout2.addWidget(self.textbox2)
+			self.textbox2.setPlainText("This is an empty buffer.\nFor notes or text you don't want to save, write them here.")
+			self.textbox2.setFocus()
 		
+			TextBox_Window.has_been_split = True
+			
 		if BoostPlainTextEdit.is_window_split:
+			if TextBox_Window.active_window == "Textbox2":
+				self.outer_widget_1.setVisible(False)
+				self.textbox2.setFocus()
+				BoostPlainTextEdit.is_window_split = False
+			elif TextBox_Window.active_window == "Textbox":
+				self.outer_widget_2.setVisible(False)
+				self.textbox.setFocus()
+				BoostPlainTextEdit.is_window_split = False
+
 			TextBox_Window.browser_layout_widget.setFixedWidth(TextBox_Window.outer_widget_1.width() + 1)
 			TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width() + 2, 0, 0, 0)
-		else:
-			TextBox_Window.browser_layout_widget.setFixedWidth(TextBox_Window.outer_widget_1.width() + 1)
-			TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width() + 2, 0, 0, 0)			
-
-		self.stacked_layout2.addWidget(self.textbox2)
-		self.textbox2.setPlainText("This is an empty buffer.\nFor notes or text you don't want to save, write them here.")
-		self.textbox2.setFocus()
-
-		BoostPlainTextEdit.is_window_split = True
-		
+			
+		elif not BoostPlainTextEdit.is_window_split:
+			if TextBox_Window.active_window == "Textbox2":
+				self.outer_widget_1.setVisible(True)
+				self.textbox2.setFocus()
+				BoostPlainTextEdit.is_window_split = True
+			elif TextBox_Window.active_window == "Textbox":
+				self.outer_widget_2.setVisible(True)
+				self.textbox.setFocus()
+				BoostPlainTextEdit.is_window_split = True
+														
 	#Detect indentation of previous line and insert tabs accordingly
 	def auto_indent(self):
 		self.document_text = self.document()
@@ -1785,7 +1792,31 @@ class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
 			TextBox_Window.get_preference.setParent(None)
 		
 		self.set_textbox_focus()
+		
+	def keyPressEvent(self, event):
+		k = event.key()
+		
+		if k == QtCore.Qt.Key_Right:
+			TextBox_Window.temp_current_dir_list[0] = TextBox_Window.temp_current_dir_list[0].replace("{", "")
+			TextBox_Window.temp_current_dir_list[0] = TextBox_Window.temp_current_dir_list[0].replace("}", "")
+			TextBox_Window.temp_current_dir_list = TextBox_Window.temp_current_dir_list[-1:] + TextBox_Window.temp_current_dir_list[:-1]
+
+		if k == QtCore.Qt.Key_Left:
+			TextBox_Window.temp_current_dir_list[0] = TextBox_Window.temp_current_dir_list[0].replace("{", "")
+			TextBox_Window.temp_current_dir_list[0] = TextBox_Window.temp_current_dir_list[0].replace("}", "")
+			TextBox_Window.temp_current_dir_list = TextBox_Window.temp_current_dir_list[1:] + TextBox_Window.temp_current_dir_list[:1]
+
+		if len(TextBox_Window.temp_current_dir_list) > 0 and len(TextBox_Window.current_dir_list) > 0 and \
+		 TextBox_Window.temp_current_dir_list[0] != TextBox_Window.current_dir_list[0]:
+			if len(TextBox_Window.temp_current_dir_list) > 1:
+				TextBox_Window.temp_current_dir_list[0] = TextBox_Window.temp_current_dir_list[0].replace(TextBox_Window.temp_current_dir_list[0], \
+				 "{" + TextBox_Window.temp_current_dir_list[0] + "}")
+
+		TextBox_Window.dir_string = '[%s]' % ' | '.join(map(str, TextBox_Window.temp_current_dir_list))
+		TextBox_Window.dir_browser_search.setText(TextBox_Window.dir_string)
 				
+		#Handle any other event normally 
+		QtGui.QLineEdit.keyPressEvent(self, event)
 			
 #Custom QLabel for top bar
 class BrowserBarLabel(QtGui.QLabel, TextBox_Window):
