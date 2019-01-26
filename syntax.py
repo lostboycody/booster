@@ -389,11 +389,24 @@ class BoostSourceHighlighter(QSyntaxHighlighter):
 			braces = [
 				'\{', '\}', '\(', '\)', '\[', '\]',
 			]
-			  
+			 
+		#Everything not a source file 
 		else:
 			keywords = []
 			operators = []
 			braces = []
+			
+			STYLES = {
+				'keyword': format('#DBD9D5'),
+				'operator': format('#DBD9D5'),
+				'brace': format('#DBD9D5'),
+				'defclass': format('#DBD9D5'),
+				'string': format('#DBD9D5'),
+				'string2': format('#DBD9D5'),
+				'comment': format('#DBD9D5'),
+				'self': format('#DBD9D5'),
+				'numbers': format('#DBD9D5'),
+			}			
 			
 		QSyntaxHighlighter.__init__(self, self.document)
 						
