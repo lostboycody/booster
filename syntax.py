@@ -22,7 +22,7 @@ def format(color, style=''):
 class BoostSourceHighlighter(QSyntaxHighlighter):
 	global syntax_mode
 	file_extensions = ["py", "java", "cpp", "c", "htm", "html", "js",
-	"css", "php", "h", "cs", "sh"]
+	"css", "php", "h", "cs", "sh", "rs"]
 	
 			
 	def __init__(self, document, filename, syntax_mode, syntax_theme):
@@ -361,6 +361,25 @@ class BoostSourceHighlighter(QSyntaxHighlighter):
 				'\{', '\}', '\(', '\)', '\[', '\]',
 			]
 
+		elif syntax_mode == "rs":
+			keywords = [
+				'_', 'abstract', 'alignof', 'as', 'become', 'box', 'break', 'const', 
+				'continue', 'crate', 'do', 'else', 'enum', 'extern', 'false', 'final', 
+				'fn', 'for', 'if', 'impl', 'in', 'let', 'loop', 'macro', 'match', 'mod', 
+				'move', 'mut', 'offsetof', 'override', 'priv', 'proc', 'pub', 'pure', 
+				'ref', 'return', 'Self', 'self', 'sizeof', 'static', 'struct', 'super', 
+				'trait', 'true', 'type', 'typeof', 'unsafe', 'unsized', 'use', 'virtual', 
+				'where', 'while', 'yield'
+			]
+			
+			operators = [
+				# Arithmetic
+				'\+', '-', '\*', '/', '//', '\%', '\*\*',
+			]
+			
+			braces = [
+				'\{', '\}', '\(', '\)', '\[', '\]',
+			]
 									
 		# Python operators
 		elif syntax_mode in BoostSourceHighlighter.file_extensions:
