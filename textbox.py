@@ -370,23 +370,16 @@ class TextBox_Window(QObject):
 	def file_open(self, file):
 		TextBox_Window.file_opened = True
 		
-		#Don't modify this file
-		if "firstfile.txt" in str(os.path.abspath(file)):
-			if TextBox_Window.active_window == "Textbox2":
-				self.textbox2.setReadOnly(True)
-			else:
-				self.textbox.setReadOnly(True)
+		if TextBox_Window.active_window == "Textbox2":
+			self.textbox2.setReadOnly(False)
+			self.textbox2.setStyle(self.textbox2.style())
+			self.editmode_label2.setText("ins")
+			self.editmode_label2.setToolTip(TextBox_Window.ins_tooltip)
 		else:
-			if TextBox_Window.active_window == "Textbox2":
-				self.textbox2.setReadOnly(False)
-				self.textbox2.setStyle(self.textbox2.style())
-				self.editmode_label2.setText("ins")
-				self.editmode_label2.setToolTip(TextBox_Window.ins_tooltip)
-			else:
-				self.textbox.setReadOnly(False)
-				self.textbox.setStyle(self.textbox.style())
-				self.editmode_label.setText("ins")
-				self.editmode_label.setToolTip(TextBox_Window.ins_tooltip)
+			self.textbox.setReadOnly(False)
+			self.textbox.setStyle(self.textbox.style())
+			self.editmode_label.setText("ins")
+			self.editmode_label.setToolTip(TextBox_Window.ins_tooltip)
 		
 		#If the file exists, open it and write to textbox
 		if os.path.isfile(file):
@@ -513,24 +506,29 @@ class TextBox_Window(QObject):
 		self.apply_syntax_highlight(TextBox_Window.syntax_theme)
 		
 		#Replace top browser after file browser closes
-		if not "firstfile.txt" in str(os.path.abspath(file)):
-			self.browser_layout.addWidget(self.file_modified_label)
-			self.browser_layout.addWidget(self.file_label)
-			self.browser_layout.addWidget(self.filemode_label)
-			self.browser_layout.addWidget(self.editmode_label)
-			self.browser_layout.addWidget(self.line_label)
-
-			self.file_modified_label.setVisible(True)
-			self.file_label.setVisible(True)
-			self.filemode_label.setVisible(True)
-			self.editmode_label.setVisible(True)
-			self.line_label.setVisible(True)
-		else:
+		self.browser_layout.addWidget(self.file_modified_label)
+		self.browser_layout.addWidget(self.file_label)
+		self.browser_layout.addWidget(self.filemode_label)
+		self.browser_layout.addWidget(self.editmode_label)
+		self.browser_layout.addWidget(self.line_label)		
+		self.file_modified_label.setVisible(True)
+		self.file_label.setVisible(True)
+		self.filemode_label.setVisible(True)
+		self.editmode_label.setVisible(True)
+		self.line_label.setVisible(True)
+		
+		#Don't modify this file
+		if "firstfile.txt" in str(os.path.abspath(file)):
 			self.file_modified_label.setVisible(False)
 			self.file_label.setVisible(False)
 			self.filemode_label.setVisible(False)
 			self.editmode_label.setVisible(False)
 			self.line_label.setVisible(False)
+
+			if TextBox_Window.active_window == "Textbox2":
+				self.textbox2.setReadOnly(True)
+			else:
+				self.textbox.setReadOnly(True)		
 
 		if TextBox_Window.active_window == "Textbox2":
 			TextBox_Window.main_file_path = TextBox_Window.file_path_2
@@ -822,14 +820,14 @@ class TextBox_Window(QObject):
 								""")
 			if TextBox_Window.active_window == "Textbox2":
 				self.textbox2.setStyleSheet("""
-				   			BoostPlainTextEdit { background-color: #17181C; selection-color: black; selection-background-color: #FA8072; color: #60ac39; }
-							BoostPlainTextEdit[readOnly=true] { color: #d73737; }
+				   			BoostPlainTextEdit { background-color: #17181C; selection-color: black; selection-background-color: #FA8072; color: #90ee90; }
+							BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
 							.QScrollBar { height: 0px; width: 0px; }
 							""")
 			else:
 				self.textbox.setStyleSheet("""
-				   			BoostPlainTextEdit { background-color: #17181C; selection-color: black; selection-background-color: #FA8072; color: #60ac39; }
-							BoostPlainTextEdit[readOnly=true] { color: #d73737; }
+				   			BoostPlainTextEdit { background-color: #17181C; selection-color: black; selection-background-color: #FA8072; color: #90ee90; }
+							BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
 							.QScrollBar { height: 0px; width: 0px; }
 							""")				
 		else:
@@ -1255,8 +1253,8 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				self.mergeCurrentCharFormat(self.fmt)
 			else:
 				self.setStyleSheet("""
-				   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #2A2C33; color: #60ac39; }
-							BoostPlainTextEdit[readOnly=true] { color: #d73737; }
+				   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #192863; color: #90ee90; }
+							BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
 							.QScrollBar { height: 0px; width: 0px; }
 			       		""")
 				self.fmt = QTextCharFormat()
@@ -1265,8 +1263,8 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 
 		except:
 			self.setStyleSheet("""
-			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #2A2C33; color: #60ac39; }
-						BoostPlainTextEdit[readOnly=true] { color: #d73737; }
+			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #192863; color: #90ee90; }
+						BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
 						.QScrollBar { height: 0px; width: 0px; }
 			      		""")
 			self.fmt = QTextCharFormat()
@@ -1373,14 +1371,14 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		#Reset color scheme after search_in_file changes highlight color
 		if TextBox_Window.active_window == "Textbox2":
 			self.textbox2.setStyleSheet("""
-			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #2A2C33; color: #60ac39; }
+			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #192863; color: #90ee90; }
 						BoostPlainTextEdit[readOnly=true] { color: #d73737; }
 						.QScrollBar { height: 0px; width: 0px; }
 			      		""")
 		else:
 			self.textbox.setStyleSheet("""
-			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #2A2C33; color: #60ac39; }
-						BoostPlainTextEdit[readOnly=true] { color: #d73737; }
+			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #192863; color: #90ee90; }
+						BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
 						.QScrollBar { height: 0px; width: 0px; }
 			      		""")
 		
@@ -1799,12 +1797,12 @@ class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
 		if k == QtCore.Qt.Key_Right:
 			TextBox_Window.temp_current_dir_list[0] = TextBox_Window.temp_current_dir_list[0].replace("{", "")
 			TextBox_Window.temp_current_dir_list[0] = TextBox_Window.temp_current_dir_list[0].replace("}", "")
-			TextBox_Window.temp_current_dir_list = TextBox_Window.temp_current_dir_list[-1:] + TextBox_Window.temp_current_dir_list[:-1]
+			TextBox_Window.temp_current_dir_list = TextBox_Window.temp_current_dir_list[1:] + TextBox_Window.temp_current_dir_list[:1]
 
 		if k == QtCore.Qt.Key_Left:
 			TextBox_Window.temp_current_dir_list[0] = TextBox_Window.temp_current_dir_list[0].replace("{", "")
 			TextBox_Window.temp_current_dir_list[0] = TextBox_Window.temp_current_dir_list[0].replace("}", "")
-			TextBox_Window.temp_current_dir_list = TextBox_Window.temp_current_dir_list[1:] + TextBox_Window.temp_current_dir_list[:1]
+			TextBox_Window.temp_current_dir_list = TextBox_Window.temp_current_dir_list[-1:] + TextBox_Window.temp_current_dir_list[:-1]
 
 		if len(TextBox_Window.temp_current_dir_list) > 0 and len(TextBox_Window.current_dir_list) > 0 and \
 		 TextBox_Window.temp_current_dir_list[0] != TextBox_Window.current_dir_list[0]:
