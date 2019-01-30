@@ -267,7 +267,7 @@ class BoostSourceHighlighter(QSyntaxHighlighter):
 				'string': format('#77D479'),
 				'string2': format('#77D479'),
 				'comment': format('#6e6b5e'),
-				'self': format('#6e6b5e'),
+				'self': format('#C37A5A'),
 				'numbers': format('#DBD9D5'),
 			}
 			
