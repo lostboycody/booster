@@ -366,7 +366,9 @@ class TextBox_Window(QObject):
 					self.line_label.setFixedWidth(self.bar_font_metrics.width(self.line_label.text()) + 7)
 				else:
 					self.line_label.setFixedWidth(self.bar_font_metrics.width(self.line_label.text()) + 10)
-
+					
+		self.highlight_current_line()
+		
 	def file_open(self, file):
 		TextBox_Window.file_opened = True
 		
@@ -730,8 +732,18 @@ class TextBox_Window(QObject):
 					
 	def highlight_current_line(self):
 		self.extraSelections = []
-		if not self.textbox.isReadOnly():
-			self.lineColor = QColor(Qt.black)
+		if TextBox_Window.active_window == "Textbox2" and not self.textbox2.isReadOnly():
+			self.lineColor = QColor("#090a11")
+			self.selection = QTextEdit.ExtraSelection()
+			self.selection.format.setBackground(self.lineColor)
+			self.selection.format.setProperty(QTextFormat.FullWidthSelection, QVariant(True))
+			self.selection.cursor = self.textbox2.textCursor()
+			self.selection.cursor.clearSelection()
+			self.extraSelections.append(self.selection)
+
+			self.textbox2.setExtraSelections(self.extraSelections)
+		elif TextBox_Window.active_window == "Textbox" and not self.textbox.isReadOnly():
+			self.lineColor = QColor("#090a11")
 			self.selection = QTextEdit.ExtraSelection()
 			self.selection.format.setBackground(self.lineColor)
 			self.selection.format.setProperty(QTextFormat.FullWidthSelection, QVariant(True))
@@ -739,7 +751,7 @@ class TextBox_Window(QObject):
 			self.selection.cursor.clearSelection()
 			self.extraSelections.append(self.selection)
 
-		self.textbox.setExtraSelections(self.extraSelections)
+			self.textbox.setExtraSelections(self.extraSelections)
 
 	#If not already displayed, create the search widget and add them to layout
 	def setup_search_box(self):
@@ -1253,7 +1265,7 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				self.mergeCurrentCharFormat(self.fmt)
 			else:
 				self.setStyleSheet("""
-				   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #192863; color: #90ee90; }
+				   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #162730; color: #90ee90; }
 							BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
 							.QScrollBar { height: 0px; width: 0px; }
 			       		""")
@@ -1263,7 +1275,7 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 
 		except:
 			self.setStyleSheet("""
-			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #192863; color: #90ee90; }
+			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #162730; color: #90ee90; }
 						BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
 						.QScrollBar { height: 0px; width: 0px; }
 			      		""")
@@ -1371,13 +1383,13 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		#Reset color scheme after search_in_file changes highlight color
 		if TextBox_Window.active_window == "Textbox2":
 			self.textbox2.setStyleSheet("""
-			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #192863; color: #90ee90; }
+			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #162730; color: #90ee90; }
 						BoostPlainTextEdit[readOnly=true] { color: #d73737; }
 						.QScrollBar { height: 0px; width: 0px; }
 			      		""")
 		else:
 			self.textbox.setStyleSheet("""
-			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #192863; color: #90ee90; }
+			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #162730; color: #90ee90; }
 						BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
 						.QScrollBar { height: 0px; width: 0px; }
 			      		""")
@@ -1391,7 +1403,13 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		
 		self.set_inactive_browser_bar()
 		QApplication.restoreOverrideCursor()
-													
+		
+#	def paintEvent(self, event):
+#		qp = QtGui.QPainter(self.viewport())
+#		qp.setViewport(self.viewport())
+#		qp.drawText((self.font_metrics.width(" ") * 2) * self.textbox.textCursor().positionInBlock(), (self.font_metrics.xHeight() * 2) * self.textbox.textCursor().blockNumber(), "Hello")
+#		QPlainTextEdit.paintEvent(self, event)
+       													
 	def set_active_browser_bar(self):
 		if TextBox_Window.active_window == "Textbox2":
 			TextBox_Window.main_file_path = TextBox_Window.file_path_2
