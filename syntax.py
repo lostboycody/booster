@@ -4,7 +4,7 @@ import os
 from PyQt4.QtCore import QRegExp
 from PyQt4.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
 
-def format(color, style=''):
+def format(color):
 	#Return a QTextCharFormat with the given attributes.
 	
 	_color = QColor()
@@ -12,10 +12,6 @@ def format(color, style=''):
 
 	_format = QTextCharFormat()
 	_format.setForeground(_color)
-	if 'bold' in style:
-		_format.setFontWeight(QFont.Bold)
-	if 'italic' in style:
-		_format.setFontItalic(True)
 
 	return _format
 		
@@ -23,7 +19,6 @@ class BoostSourceHighlighter(QSyntaxHighlighter):
 	global syntax_mode
 	file_extensions = ["py", "java", "cpp", "c", "htm", "html", "js",
 	"css", "php", "h", "cs", "sh", "rs"]
-	
 			
 	def __init__(self, document, filename, syntax_mode, syntax_theme):
 		self.document = document
@@ -248,25 +243,25 @@ class BoostSourceHighlighter(QSyntaxHighlighter):
 			}
 			elif syntax_theme == "":
 				STYLES = {
-					'keyword': format('#5E5E5E'),
-					'operator': format('#494949'),
-					'brace': format('#878787'),
-					'defclass': format('#B5B5B5'),
-					'string': format('#B5B5B5'),
-					'string2': format('#B5B5B5'),
-					'comment': format('#494949'),
-					'self': format('#5E5E5E'),
-					'numbers': format('#A6A28C'),
+					'keyword': format('#2273A5'),
+					'operator': format('#DBD9D5'),
+					'brace': format('#DBD9D5'),
+					'defclass': format('#ccac55'),
+					'string': format('#77D479'),
+					'string2': format('#77D479'),
+					'comment': format('#8b939b'),
+					'self': format('#C37A5A'),
+					'numbers': format('#DBD9D5'),
 				}
 		except:
 			STYLES = {
 				'keyword': format('#2273A5'),
 				'operator': format('#DBD9D5'),
 				'brace': format('#DBD9D5'),
-				'defclass': format('#FFC629'),
+				'defclass': format('#ccac55'),
 				'string': format('#77D479'),
 				'string2': format('#77D479'),
-				'comment': format('#6e6b5e'),
+				'comment': format('#8b939b'),
 				'self': format('#C37A5A'),
 				'numbers': format('#DBD9D5'),
 			}
