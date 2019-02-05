@@ -66,7 +66,7 @@ class TextBox_Window(QObject):
 		#Set widget background color to dark gray for debug purposes
 		palette = self.widget.palette()
 		role = self.widget.backgroundRole()
-		palette.setColor(role, QColor("#17181C"))
+		palette.setColor(role, QColor("#181c1f"))
 		palette.setColor(QPalette.HighlightedText, QColor("red"))
 		self.widget.setPalette(palette)
 		
@@ -90,7 +90,7 @@ class TextBox_Window(QObject):
 		self.editmode_label2.setHidden(not self.editmode_label2.isHidden())
 		self.line_label2.setHidden(not self.line_label2.isHidden())
 	
-		self.file_modified_label.setFixedWidth(0)				
+		self.file_modified_label.setFixedWidth(0)
 		self.file_label.setFixedWidth(0)
 		self.filemode_label.setFixedWidth(0)
 		self.editmode_label.setFixedWidth(0)
@@ -168,13 +168,13 @@ class TextBox_Window(QObject):
 				self.browser_layout_widget2.setStyleSheet("""
 									QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
 									QScrollArea { background-color: transparent; border: 0px solid black; }
-									QWidget { background-color: #17181C; border: 0px solid black; }
+									QWidget { background-color: #181c1f; border: 0px solid black; }
 								""")
 		except:
 			self.browser_layout_widget2.setStyleSheet("""
 								QScrollBar { height: 0px; width: 0px; background-color: transparent; border: 0px solid black; }
 								QScrollArea { background-color: transparent; border: 0px solid black; }
-								QWidget { background-color: #17181C; border: 0px solid black; }
+								QWidget { background-color: #181c1f; border: 0px solid black; }
 								""")
 		self.browser_layout_widget2.setLayout(self.browser_layout2)
 		self.browser_layout_widget2.setFixedHeight(self.bar_font_metrics.height() + 4)
@@ -639,13 +639,13 @@ class TextBox_Window(QObject):
 			self.new_file_name.setFixedHeight(self.bar_font_metrics.height() + 6)
 			self.new_file_name.setFont(TextBox_Window.bar_font)
 			self.new_file_name.setStyleSheet("""
-								.SearchLineEdit { background-color: #17181C; color: #e8e4cf; padding-top: 3px; border: 0px solid black; font-size: 14px; }
+								.SearchLineEdit { background-color: #181c1f; color: #e8e4cf; padding-top: 3px; border: 0px solid black; font-size: 14px; }
 							""")
-			TextBox_Window.get_new_file = QtGui.QLabel(" New filename:", parent = self.main_text_label)
+			TextBox_Window.get_new_file = QtGui.QLabel("New filename:", parent = self.main_text_label)
 			self.get_new_file.setFixedHeight(self.bar_font_metrics.height() + 6)
 			self.get_new_file.setFont(TextBox_Window.bar_font)
 			self.get_new_file.setStyleSheet("""
-								.QLabel { background-color: #17181C; color: #6684e1; padding-top: 3px; border: 0px solid black; font-size: 14px; }
+								.QLabel { background-color: #181c1f; color: #6684e1; padding-top: 3px; border: 0px solid black; font-size: 14px; }
 							""")
 							
 			if TextBox_Window.active_window == "Textbox2" and BoostPlainTextEdit.is_window_split:
@@ -718,12 +718,10 @@ class TextBox_Window(QObject):
 	def apply_syntax_highlight(self, theme):
 		TextBox_Window.syntax_theme = theme
 							
-		self.highlighter2 = None		
-		self.highlighter2 = syntax.BoostSourceHighlighter(self.textbox2.document(), \
+		TextBox_Window.highlighter2 = syntax.BoostSourceHighlighter(self.textbox2.document(), \
 		 TextBox_Window.file_name_2, self.preference_value, theme)
 
-		self.highlighter = None
-		self.highlighter = syntax.BoostSourceHighlighter(self.textbox.document(), \
+		TextBox_Window.highlighter = syntax.BoostSourceHighlighter(self.textbox.document(), \
 		 TextBox_Window.file_name, self.preference_value, theme)
 					
 		QtCore.QTimer.singleShot(5, self.set_file_not_modified)
@@ -731,9 +729,9 @@ class TextBox_Window(QObject):
 		self.set_textbox_focus()
 					
 	def highlight_current_line(self):
-		self.extraSelections = []
-		if TextBox_Window.active_window == "Textbox2" and not self.textbox2.isReadOnly():
-			self.lineColor = QColor("#090a11")
+		if TextBox_Window.active_window == "Textbox2":
+			self.extraSelections = []
+			self.lineColor = QColor("#0e1112")
 			self.selection = QTextEdit.ExtraSelection()
 			self.selection.format.setBackground(self.lineColor)
 			self.selection.format.setProperty(QTextFormat.FullWidthSelection, QVariant(True))
@@ -742,8 +740,9 @@ class TextBox_Window(QObject):
 			self.extraSelections.append(self.selection)
 
 			self.textbox2.setExtraSelections(self.extraSelections)
-		elif TextBox_Window.active_window == "Textbox" and not self.textbox.isReadOnly():
-			self.lineColor = QColor("#090a11")
+		elif TextBox_Window.active_window == "Textbox":
+			self.extraSelections = []
+			self.lineColor = QColor("#0e1112")
 			self.selection = QTextEdit.ExtraSelection()
 			self.selection.format.setBackground(self.lineColor)
 			self.selection.format.setProperty(QTextFormat.FullWidthSelection, QVariant(True))
@@ -760,11 +759,11 @@ class TextBox_Window(QObject):
 			TextBox_Window.query = SearchLineEdit("")
 			self.query.setFixedHeight(self.bar_font_metrics.height() + 6)
 			self.query.setFont(TextBox_Window.bar_font)
-			TextBox_Window.search_text = QtGui.QLabel(" Search:", parent = self.main_text_label)
+			TextBox_Window.search_text = QtGui.QLabel("Search:", parent = self.main_text_label)
 			self.search_text.setFixedHeight(self.bar_font_metrics.height() + 6)
 			self.search_text.setFont(TextBox_Window.bar_font)
 			self.search_text.setStyleSheet("""
-								background-color: #17181C; color: #1fad83; padding-top: 2px; border: 0px solid black; font-size: 14px;
+								background-color: #181c1f; color: #1fad83; padding-top: 2px; border: 0px solid black; font-size: 14px;
 							""")
 							
 			if TextBox_Window.active_window == "Textbox2":
@@ -828,18 +827,18 @@ class TextBox_Window(QObject):
 			start = self.last_match.start()
 			end = self.last_match.end()
 			self.query.setStyleSheet("""
-								.SearchLineEdit { background-color: #17181C; color: #e8e4cf; border: 0px solid black; }
+								.SearchLineEdit { background-color: #181c1f; color: #e8e4cf; border: 0px solid black; }
 								""")
 			if TextBox_Window.active_window == "Textbox2":
 				self.textbox2.setStyleSheet("""
-				   			BoostPlainTextEdit { background-color: #17181C; selection-color: black; selection-background-color: #FA8072; color: #90ee90; }
-							BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
+				   			BoostPlainTextEdit { background-color: #181c1f; selection-color: black; selection-background-color: #FA8072; color: #42cc3f; }
+							BoostPlainTextEdit[readOnly=true] { color: #cc3f3f; }
 							.QScrollBar { height: 0px; width: 0px; }
 							""")
 			else:
 				self.textbox.setStyleSheet("""
-				   			BoostPlainTextEdit { background-color: #17181C; selection-color: black; selection-background-color: #FA8072; color: #90ee90; }
-							BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
+				   			BoostPlainTextEdit { background-color: #181c1f; selection-color: black; selection-background-color: #FA8072; color: #42cc3f; }
+							BoostPlainTextEdit[readOnly=true] { color: #cc3f3f; }
 							.QScrollBar { height: 0px; width: 0px; }
 							""")				
 		else:
@@ -915,7 +914,7 @@ class TextBox_Window(QObject):
 		self.dir_string = '[%s]' % ' | '.join(map(str, TextBox_Window.current_dir_list))
 		self.dir_browser_search.setText(self.dir_string)
 		self.dir_browser_search.setStyleSheet("""
-									font-family: Noto Mono; background-color: #17181C; color: #e8e4cf; border: 0px solid black; text-align: left; padding-top: 0px;
+									font-family: Noto Mono; background-color: #181c1f; color: #e8e4cf; border: 0px solid black; text-align: left; padding-top: 0px;
 									""")
 									
 		self.dir_browser_search.setMinimumHeight(self.dir_browser_search.document().size().height())	
@@ -1073,10 +1072,11 @@ class TextBox_Window(QObject):
 			TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width() + 2, 0, 0, 0)
 		else:
 			TextBox_Window.browser_layout_widget.setFixedWidth(TextBox_Window.outer_widget_1.width() + 1)
-			TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width() + 2, 0, 0, 0)            
+			TextBox_Window.browser_layout2.setContentsMargins(TextBox_Window.browser_layout_widget.width() + 2, 0, 0, 0)
 		
+		self.reset_browser_bar()
 		self.stacked_layout.setCurrentIndex(0)
-
+		TextBox_Window.preferences_displayed = False
 
 	def update_file_modified(self):
 		if TextBox_Window.active_window == "Textbox2":
@@ -1100,10 +1100,7 @@ class TextBox_Window(QObject):
 			TextBox_Window.file_modified_label.setText("")
 			TextBox_Window.file_modified_label.setFixedWidth(0)
 			
-	def open_preference_menu(self):						
-		if not TextBox_Window.dir_browser_open:
-			TextBox_Window.dir_browser_open = True
-
+	def open_preference_menu(self):
 		#Display the browser directory and remove the bottom label
 		self.main_text_label.setProperty("is_active", True)
 		
@@ -1124,7 +1121,7 @@ class TextBox_Window(QObject):
   		self.syntax_color_button = QPushButton("Syntax Color")
 		self.syntax_color_button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 		self.syntax_color_button.setStyleSheet("""
-	   	   							.QPushButton { border: none; background-color: #17181C; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
+	   	   							.QPushButton { border: none; background-color: #181c1f; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
 		   							.QPushButton:focus { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 			   						.QPushButton:hover { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 	   	   						""")
@@ -1136,7 +1133,7 @@ class TextBox_Window(QObject):
   		self.font_size_button = QPushButton("Font Size")
 		self.font_size_button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 		self.font_size_button.setStyleSheet("""
-	   	   							.QPushButton { border: none; background-color: #17181C; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
+	   	   							.QPushButton { border: none; background-color: #181c1f; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
 		   							.QPushButton:focus { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 			   						.QPushButton:hover { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 	   	   						""")
@@ -1153,6 +1150,8 @@ class TextBox_Window(QObject):
 		self.editmode_label.setParent(None)
 		self.line_label.setParent(None)
 		
+		TextBox_Window.preferences_displayed = True
+		
 	def open_syntax_colors(self):
 		for widget in self.dialog_button_box.children():
 			if isinstance(widget, QPushButton):
@@ -1166,7 +1165,7 @@ class TextBox_Window(QObject):
   		self.syntax_color_button = QPushButton("Syntax Color")
 		self.syntax_color_button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 		self.syntax_color_button.setStyleSheet("""
-	   	   							.QPushButton { border: none; background-color: #17181C; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
+	   	   							.QPushButton { border: none; background-color: #181c1f; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
 		   							.QPushButton:focus { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 			   						.QPushButton:hover { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 	   	   						""")
@@ -1176,7 +1175,7 @@ class TextBox_Window(QObject):
 			self.button.setObjectName(str(color))
 			self.button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 	   	   	self.button.setStyleSheet("""
-	   	   							.QPushButton { border: none; background-color: #17181C; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
+	   	   							.QPushButton { border: none; background-color: #181c1f; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
 		   							.QPushButton:focus { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 			   						.QPushButton:hover { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 	   	   						""")
@@ -1196,7 +1195,7 @@ class TextBox_Window(QObject):
   		self.font_size_button = QPushButton("Font Size")
 		self.font_size_button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 		self.font_size_button.setStyleSheet("""
-	   	   							.QPushButton { border: none; background-color: #17181C; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
+	   	   							.QPushButton { border: none; background-color: #181c1f; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
 		   							.QPushButton:focus { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 			   						.QPushButton:hover { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 	   	   						""")
@@ -1206,7 +1205,7 @@ class TextBox_Window(QObject):
 			self.button.setObjectName(str(size))
 			self.button.setMinimumSize(QSize(self.outer_widget_1.width(), 30))
 	   	   	self.button.setStyleSheet("""
-	   	   							.QPushButton { border: none; background-color: #17181C; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
+	   	   							.QPushButton { border: none; background-color: #181c1f; color: #DBD9D5; text-align: left; padding: 5px; font-family: Noto Mono; font-size: 14px; }
 		   							.QPushButton:focus { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 			   						.QPushButton:hover { outline: 0px; border: 2px solid #2273A5; padding: 3px; }
 	   	   						""")
@@ -1239,7 +1238,7 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 			if str(sys.argv[1]) == "forest":
 				self.setStyleSheet("""
 				   			BoostPlainTextEdit { background-color: #222B1E; selection-color: #BFBFBF; selection-background-color: #0C0075; color: lightgreen; }
-							BoostPlainTextEdit[readOnly=true] { color: #EE9090; }
+							BoostPlainTextEdit[readOnly=true] { color: #cc3f3f; }
 							.QScrollBar { height: 0px; width: 0px; }
 		   	    		""")
 				self.fmt = QTextCharFormat()
@@ -1248,7 +1247,7 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 			elif str(sys.argv[1]) == "spacex":
 				self.setStyleSheet("""
 				   			BoostPlainTextEdit { background-color: #192433; selection-color: #BFBFBF; selection-background-color: #0C0075; color: lightgreen; }
-							BoostPlainTextEdit[readOnly=true] { color: #EE9090; }
+							BoostPlainTextEdit[readOnly=true] { color: #cc3f3f; }
 							.QScrollBar { height: 0px; width: 0px; }
 		   	    		""")
 				self.fmt = QTextCharFormat()
@@ -1257,7 +1256,7 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 			elif str(sys.argv[1]) == "alabaster":
 				self.setStyleSheet("""
 				   			BoostPlainTextEdit { background-color: #EDEAE0; selection-color: #BFBFBF; selection-background-color: #0C0075; color: #378437; }
-							BoostPlainTextEdit[readOnly=true] { color: #843837; }
+							BoostPlainTextEdit[readOnly=true] { color: #cc3f3f; }
 							.QScrollBar { height: 0px; width: 0px; }
 		   	    		""")
 				self.fmt = QTextCharFormat()
@@ -1265,22 +1264,22 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 				self.mergeCurrentCharFormat(self.fmt)
 			else:
 				self.setStyleSheet("""
-				   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #162730; color: #90ee90; }
-							BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
+				   			BoostPlainTextEdit { background-color: #181c1f; selection-color: white; selection-background-color: #162730; color: #42cc3f; }
+							BoostPlainTextEdit[readOnly=true] { color: #cc3f3f; }
 							.QScrollBar { height: 0px; width: 0px; }
 			       		""")
 				self.fmt = QTextCharFormat()
-				self.fmt.setForeground(QBrush(QColor("#DBD9D5")))
+				self.fmt.setForeground(QBrush(QColor("#d1d1d1")))
 				self.mergeCurrentCharFormat(self.fmt)
 
 		except:
 			self.setStyleSheet("""
-			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #162730; color: #90ee90; }
-						BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
+			   			BoostPlainTextEdit { background-color: #181c1f; selection-color: white; selection-background-color: #162730; color: #42cc3f; }
+						BoostPlainTextEdit[readOnly=true] { color: #cc3f3f; }
 						.QScrollBar { height: 0px; width: 0px; }
 			      		""")
 			self.fmt = QTextCharFormat()
-			self.fmt.setForeground(QBrush(QColor("#DBD9D5")))
+			self.fmt.setForeground(QBrush(QColor("#d1d1d1")))
 			self.mergeCurrentCharFormat(self.fmt)
 												
 		#Set default tab width to 4 spaces
@@ -1383,14 +1382,14 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 		#Reset color scheme after search_in_file changes highlight color
 		if TextBox_Window.active_window == "Textbox2":
 			self.textbox2.setStyleSheet("""
-			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #162730; color: #90ee90; }
-						BoostPlainTextEdit[readOnly=true] { color: #d73737; }
+			   			BoostPlainTextEdit { background-color: #181c1f; selection-color: white; selection-background-color: #162730; color: #42cc3f; }
+						BoostPlainTextEdit[readOnly=true] { color: #cc3f3f; }
 						.QScrollBar { height: 0px; width: 0px; }
 			      		""")
 		else:
 			self.textbox.setStyleSheet("""
-			   			BoostPlainTextEdit { background-color: #17181C; selection-color: white; selection-background-color: #162730; color: #90ee90; }
-						BoostPlainTextEdit[readOnly=true] { color: #ee9090; }
+			   			BoostPlainTextEdit { background-color: #181c1f; selection-color: white; selection-background-color: #162730; color: #42cc3f; }
+						BoostPlainTextEdit[readOnly=true] { color: #cc3f3f; }
 						.QScrollBar { height: 0px; width: 0px; }
 			      		""")
 		
@@ -1633,6 +1632,13 @@ class BoostPlainTextEdit(QtGui.QPlainTextEdit, TextBox_Window):
 			else:
 				tab_string = "".join(tab_array)
 				self.cursor.insertText(tab_string)
+								
+		if TextBox_Window.active_window == "Textbox2":
+			self.next_block = self.textbox2.document().findBlockByLineNumber(self.line)	
+			TextBox_Window.highlighter2.rehighlightBlock(self.next_block)
+		else:
+			self.next_block = self.textbox.document().findBlockByLineNumber(self.line)	
+			TextBox_Window.highlighter.rehighlightBlock(self.next_block)
 		
 	#Indent selected text if user pressed TAB while multiple lines are selected.
 	def indent_selected_text(self):
@@ -1790,7 +1796,7 @@ class SearchLineEdit(QtGui.QLineEdit, TextBox_Window):
 		super(SearchLineEdit, self).__init__(parent)
 		self.search_line_edit = QLineEdit()
 		self.setStyleSheet("""
-							SearchLineEdit { font-family: Noto Mono; background-color: #17181C; color: #e8e4cf; border: 0px solid black; text-align: left; padding-top: 0px; }
+							SearchLineEdit { font-family: Noto Mono; background-color: #181c1f; color: #e8e4cf; border: 0px solid black; text-align: left; padding-top: 0px; }
 						""")
 		
    	def focusOutEvent(self, event):
@@ -1858,13 +1864,13 @@ class BrowserBarLabel(QtGui.QLabel, TextBox_Window):
 					""")
 			else:
 				self.setStyleSheet("""
-					BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 2px solid #17181C; }
-					BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 2px solid #17181C;}
+					BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 2px solid #181c1f; }
+					BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 2px solid #181c1f;}
 					""")
 		except:
 			self.setStyleSheet("""
-				BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 2px solid #17181C; }
-				BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 2px solid #17181C; }
+				BrowserBarLabel { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 2px solid #181c1f; }
+				BrowserBarLabel[is_active=true] { background-color: #2E3B44; color: #DBD9D5; padding-top: 3px; margin: 0; height: 12px; border-right: 2px solid #181c1f; }
 				""")
 
 #TODO(cody): Implement this to autocomplete based on word suggestions that
